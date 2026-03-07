@@ -1,0 +1,240 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+
+export default function PlayerDetailPage({ playerId, onBack }) {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!playerId) return;
+        setLoading(true);
+        fetch(`/api/players/${playerId}`)
+            .then(res => res.json())
+            .then(json => { setData(json); setLoading(false); })
+            .catch(() => setLoading(false));
+    }, [playerId]);
+
+    if (loading) {
+        return (
+            <div className="page-container">
+                <button className="back-btn" onClick={onBack}>← Back</button>
+                <div className="player-detail">
+                    <div className="skeleton" style={{ height: '120px', borderRadius: '16px', marginBottom: '16px' }} />
+                    <div className="skeleton" style={{ height: '200px', borderRadius: '12px' }} />
+                </div>
+            </div>
+        );
+    }
+
+    const p = data?.player;
+    if (!p) {
+        return (
+            <div className="page-container">
+                <button className="back-btn" onClick={onBack}>← Back</button>
+                <div className="empty-state"><h3>Player Not Found</h3></div>
+            </div>
+        );
+    }
+
+    const ratingColor = p.rating >= 85 ? 'var(--accent-green)' :
+        p.rating >= 70 ? 'var(--accent)' :
+            p.rating >= 55 ? 'var(--accent-yellow)' : 'var(--text-muted)';
+    const teamLogo = `https://a.espncdn.com/i/teamlogos/mlb/500/scoreboard/${(p.teamLogoAbbr || p.teamAbbr)?.toLowerCase()}.png`;
+
+    return (
+        <div className="page-container">
+            <button className="back-btn" onClick={onBack}>← Back</button>
+            <div className="player-detail">
+                {/* Hero */}
+                <div className="player-hero">
+                    <img src={p.headshot} alt={p.name} className="player-hero-img"
+                        onError={(e) => { e.target.src = 'https://a.espncdn.com/i/headshots/nophoto.png'; }} />
+                    <div className="player-hero-info">
+                        <h2>{p.name}</h2>
+                        <div className="player-meta-line">
+                            <img src={teamLogo} alt={p.teamAbbr} style={{ width: 20, height: 20 }} onError={(e) => { e.target.style.display = 'none'; }} />
+                            <span>{p.teamName}</span> · <span>{p.position}</span>
+                            {p.jersey && <span>· #{p.jersey}</span>}
+                        </div>
+                        <div className="player-meta-line" style={{ marginTop: 4 }}>
+                            {p.age && <span>Age {p.age}</span>}
+                            {p.height && <span>· {p.height}</span>}
+                            {p.weight && <span>· {p.weight}</span>}
+                            {p.batHand && <span>· B: {p.batHand}</span>}
+                            {p.throwHand && <span>· T: {p.throwHand}</span>}
+                        </div>
+                    </div>
+                    <div className="player-hero-rating">
+                        <div className="rating-num" style={{ color: ratingColor }}>{p.rating}</div>
+                        <div className="rating-label">OVR</div>
+                    </div>
+                </div>
+
+                {/* Current Season Stats (determines OVR) */}
+                {p.isTwoWay ? (
+                    <>
+                        <CurrentPitcherStats stats={p.pitchingStats} expected={p.expectedPitching} isTwoWay />
+                        <CurrentBatterStats stats={p.battingStats} expected={p.expectedBatting} isTwoWay />
+                    </>
+                ) : p.isPitcher ? (
+                    <CurrentPitcherStats stats={p.currentStats} expected={p.expectedStats} />
+                ) : (
+                    <CurrentBatterStats stats={p.currentStats} expected={p.expectedStats} />
+                )}
+
+                {/* Career Stats */}
+                {p.isTwoWay ? (
+                    <>
+                        <CareerPitcherStats stats={p.careerPitching} isTwoWay />
+                        <CareerBatterStats stats={p.careerBatting} isTwoWay />
+                    </>
+                ) : p.isPitcher ? (
+                    <CareerPitcherStats stats={p.careerStats} />
+                ) : (
+                    <CareerBatterStats stats={p.careerStats} />
+                )}
+            </div>
+        </div>
+    );
+}
+
+const f = (v, d = 3) => v != null && v !== 0 ? (typeof v === 'number' ? v.toFixed(d) : v) : '–';
+const fi = (v) => v != null && v !== 0 ? Math.round(v) : '–';
+
+function CurrentBatterStats({ stats, expected, isTwoWay }) {
+    const s = stats || {};
+    return (
+        <>
+            <div className="stats-section">
+                <h3>{isTwoWay ? 'Current Season (Hitting)' : 'Current Season'}</h3>
+                <div className="stats-grid-4">
+                    <SC l="AVG" v={f(s.AVG || s.avg || s.battingAverage)} />
+                    <SC l="OBP" v={f(s.OBP || s.onBasePct)} />
+                    <SC l="SLG" v={f(s.SLG || s.slugAvg)} />
+                    <SC l="OPS" v={f(s.OPS || s.ops)} />
+                </div>
+                <div className="stats-grid-4" style={{ marginTop: 8 }}>
+                    <SC l="HR" v={fi(s.homeRuns || s.HR)} />
+                    <SC l="RBI" v={fi(s.RBIs || s.RBI)} />
+                    <SC l="R" v={fi(s.runs || s.R)} />
+                    <SC l="H" v={fi(s.hits || s.H)} />
+                </div>
+                <div className="stats-grid-4" style={{ marginTop: 8 }}>
+                    <SC l="BB" v={fi(s.walks || s.BB)} />
+                    <SC l="SO" v={fi(s.strikeouts || s.SO)} />
+                    <SC l="SB" v={fi(s.stolenBases || s.SB)} />
+                    <SC l="WAR" v={f(s.WAR, 1)} />
+                </div>
+            </div>
+            {expected && Object.keys(expected).length > 0 && (
+                <div className="stats-section">
+                    <h3>Expected Stats</h3>
+                    <div className="stats-grid-4">
+                        {expected.xAVG != null && <SC l="xAVG" v={f(expected.xAVG)} ex />}
+                        {expected.xSLG != null && <SC l="xSLG" v={f(expected.xSLG)} ex />}
+                        {expected.xOPS != null && <SC l="xOPS" v={f(expected.xOPS)} ex />}
+                        {expected.xWAR != null && <SC l="xWAR" v={f(expected.xWAR, 1)} ex />}
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}
+
+function CurrentPitcherStats({ stats, expected, isTwoWay }) {
+    const s = stats || {};
+    return (
+        <>
+            <div className="stats-section">
+                <h3>{isTwoWay ? 'Current Season (Pitching)' : 'Current Season'}</h3>
+                <div className="stats-grid-4">
+                    <SC l="ERA" v={f(s.ERA || s.earnedRunAverage, 2)} />
+                    <SC l="WHIP" v={f(s.WHIP, 2)} />
+                    <SC l="K/9" v={f(s.strikeoutsPerNineInnings || s['K/9'], 2)} />
+                    <SC l="W%" v={f(s.winPct || s['W%'], 3)} />
+                </div>
+                <div className="stats-grid-4" style={{ marginTop: 8 }}>
+                    <SC l="W" v={fi(s.wins || s.W)} />
+                    <SC l="L" v={fi(s.losses || s.L)} />
+                    <SC l="K" v={fi(s.strikeouts || s.SO || s.K)} />
+                    <SC l="BB" v={fi(s.walks || s.BB)} />
+                </div>
+                <div className="stats-grid-4" style={{ marginTop: 8 }}>
+                    <SC l="IP" v={f(s.inningsPitched || s.IP || s.innings, 1)} />
+                    <SC l="HR" v={fi(s.homeRuns || s.HR)} />
+                    <SC l="GP" v={fi(s.gamesPlayed || s.GP)} />
+                    <SC l="WAR" v={f(s.WAR, 1)} />
+                </div>
+            </div>
+            {expected && Object.keys(expected).length > 0 && (
+                <div className="stats-section">
+                    <h3>Expected Stats</h3>
+                    <div className="stats-grid-4">
+                        {expected.xERA != null && <SC l="xERA" v={f(expected.xERA, 2)} ex />}
+                        {expected.xWHIP != null && <SC l="xWHIP" v={f(expected.xWHIP, 2)} ex />}
+                        {expected.xK9 != null && <SC l="xK/9" v={f(expected.xK9, 2)} ex />}
+                        {expected.xWAR != null && <SC l="xWAR" v={f(expected.xWAR, 1)} ex />}
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}
+
+function CareerBatterStats({ stats, isTwoWay }) {
+    const s = stats || {};
+    return (
+        <div className="stats-section" style={{ opacity: 0.85 }}>
+            <h3>{isTwoWay ? 'Career Stats (Hitting)' : 'Career Stats'}</h3>
+            <div className="stats-grid-4">
+                <SC l="AVG" v={f(s.AVG || s.avg)} />
+                <SC l="OBP" v={f(s.OBP || s.onBasePct)} />
+                <SC l="SLG" v={f(s.SLG || s.slugAvg)} />
+                <SC l="OPS" v={f(s.OPS || s.ops)} />
+            </div>
+            <div className="stats-grid-4" style={{ marginTop: 8 }}>
+                <SC l="HR" v={fi(s.homeRuns || s.HR)} />
+                <SC l="RBI" v={fi(s.RBIs || s.RBI)} />
+                <SC l="BB" v={fi(s.walks || s.BB)} />
+                <SC l="H" v={fi(s.hits || s.H)} />
+            </div>
+            <div className="stats-grid-4" style={{ marginTop: 8 }}>
+                <SC l="R" v={fi(s.runs || s.R)} />
+                <SC l="SB" v={fi(s.stolenBases || s.SB)} />
+                <SC l="SO" v={fi(s.strikeouts || s.SO)} />
+                <SC l="WAR" v={f(s.WAR, 1)} />
+            </div>
+        </div>
+    );
+}
+
+function CareerPitcherStats({ stats, isTwoWay }) {
+    const s = stats || {};
+    return (
+        <div className="stats-section" style={{ opacity: 0.85 }}>
+            <h3>{isTwoWay ? 'Career Stats (Pitching)' : 'Career Stats'}</h3>
+            <div className="stats-grid-4">
+                <SC l="ERA" v={f(s.ERA || s.earnedRunAverage, 2)} />
+                <SC l="WHIP" v={f(s.WHIP, 2)} />
+                <SC l="W" v={fi(s.wins || s.W)} />
+                <SC l="L" v={fi(s.losses || s.L)} />
+            </div>
+            <div className="stats-grid-4" style={{ marginTop: 8 }}>
+                <SC l="K" v={fi(s.strikeouts || s.SO)} />
+                <SC l="BB" v={fi(s.walks || s.BB)} />
+                <SC l="IP" v={f(s.inningsPitched || s.IP, 1)} />
+                <SC l="WAR" v={f(s.WAR, 1)} />
+            </div>
+        </div>
+    );
+}
+
+function SC({ l, v, ex }) {
+    return (
+        <div className={`stat-card-mini ${ex ? 'expected' : ''}`}>
+            <div className="stat-value">{v}</div>
+            <div className="stat-label">{l}</div>
+        </div>
+    );
+}
