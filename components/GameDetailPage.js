@@ -155,48 +155,57 @@ export default function GameDetailPage({ gameId, onBack }) {
                     </div>
                 )}
 
-                {/* Live Box Score */}
-                {boxscore && (boxscore.home?.batters?.length > 0 || boxscore.away?.batters?.length > 0) && (
-                    <BoxscoreTabs boxscore={boxscore} away={game.away} home={game.home} />
-                )}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px', marginBottom: '16px', alignItems: 'flex-start' }}>
+                    {/* Live Box Score */}
+                    {boxscore && (boxscore.home?.batters?.length > 0 || boxscore.away?.batters?.length > 0) ? (
+                        <div style={{ flex: 1 }}>
+                            <BoxscoreTabs boxscore={boxscore} away={game.away} home={game.home} />
+                        </div>
+                    ) : <div style={{ flex: 1 }}></div>}
 
-                {/* Key Plays */}
-                {keyPlays.length > 0 && (
-                    <div className="card" style={{ padding: '16px', marginBottom: '16px' }}>
-                        <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--accent-green)' }}>
-                            Key Plays
-                        </h3>
-                        <div className="play-by-play">
-                            {keyPlays.map((play, i) => (
-                                <div key={i} className="play-item scoring">
-                                    <span className="play-inning">{play.inning}</span>
-                                    <span className="play-text">{play.text}</span>
+                    {/* Play-by-Play Wrapper */}
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        {/* Key Plays */}
+                        {keyPlays.length > 0 && (
+                            <div className="card" style={{ padding: '16px' }}>
+                                <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--accent-green)' }}>
+                                    Key Plays
+                                </h3>
+                                <div className="play-by-play">
+                                    {keyPlays.map((play, i) => (
+                                        <div key={i} className="play-item scoring">
+                                            <span className="play-inning">{play.inning}</span>
+                                            <span className="play-text">{play.text}</span>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
+                            </div>
+                        )}
+
+                        {/* Play-by-Play */}
+                        <div className="card" style={{ padding: '16px' }}>
+                            <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)' }}>
+                                Play-by-Play
+                                {isLive && <span style={{ fontSize: '10px', color: 'var(--accent-green)', fontWeight: 600 }}>LIVE</span>}
+                            </h3>
+                            <div style={{ maxHeight: '350px', overflowY: 'auto', paddingRight: '8px' }}>
+                                {plays.length === 0 ? (
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
+                                        {isLive ? 'Waiting for plays...' : 'No play-by-play available.'}
+                                    </p>
+                                ) : (
+                                    <div className="play-by-play">
+                                        {plays.map((play, i) => (
+                                            <div key={i} className={`play-item ${play.isScoring ? 'scoring' : ''}`}>
+                                                <span className="play-inning">{play.inning}</span>
+                                                <span className="play-text">{play.text}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                )}
-
-                {/* Play-by-Play */}
-                <div className="card" style={{ padding: '16px' }}>
-                    <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)' }}>
-                        Play-by-Play
-                        {isLive && <span style={{ fontSize: '10px', color: 'var(--accent-green)', fontWeight: 600 }}>LIVE</span>}
-                    </h3>
-                    {plays.length === 0 ? (
-                        <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
-                            {isLive ? 'Waiting for plays...' : 'No play-by-play available.'}
-                        </p>
-                    ) : (
-                        <div className="play-by-play">
-                            {plays.map((play, i) => (
-                                <div key={i} className={`play-item ${play.isScoring ? 'scoring' : ''}`}>
-                                    <span className="play-inning">{play.inning}</span>
-                                    <span className="play-text">{play.text}</span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
                 </div>
 
                 {/* Game Info */}

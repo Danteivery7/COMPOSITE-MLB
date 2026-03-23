@@ -192,6 +192,36 @@ export async function GET(request, { params }) {
                     if (sbGame.state) result.game.state = sbGame.state;
                     if (sbGame.shortDetail) result.game.shortDetail = sbGame.shortDetail;
                     if (sbGame.statusDetail) result.game.statusDetail = sbGame.statusDetail;
+                    if (sbGame.situation) {
+                        result.game.situation = sbGame.situation;
+                        
+                        // Cross-reference pitcher/batter with boxscore for rich matchup stats
+                        if (result.game.situation.pitcher && boxscore) {
+                            const pName = result.game.situation.pitcher;
+                            const pStats = boxscore.home?.pitchers?.find(p => p.name === pName) || 
+                                           boxscore.away?.pitchers?.find(p => p.name === pName);
+                            if (pStats && pStats.stats) {
+                                const labels = boxscore.home?.labels?.pitching || boxscore.away?.labels?.pitching || [];
+                                const getStat = (label) => pStats.stats[labels.indexOf(label)];
+                                result.game.situation.pitcherERA = getStat('ERA');
+                                result.game.situation.pitcherK = getStat('K');
+                                const pcst = getStat('PC-ST');
+                                if (pcst) result.game.situation.pitchCount = pcst.split('-')[0];
+                            }
+                        }
+
+                        if (result.game.situation.batter && boxscore) {
+                            const bName = result.game.situation.batter;
+                            const bStats = boxscore.home?.batters?.find(b => b.name === bName) ||
+                                           boxscore.away?.batters?.find(b => b.name === bName);
+                            if (bStats && bStats.stats) {
+                                const labels = boxscore.home?.labels?.batting || boxscore.away?.labels?.batting || [];
+                                const h = bStats.stats[labels.indexOf('H')] ?? '0';
+                                const ab = bStats.stats[labels.indexOf('AB')] ?? '0';
+                                result.game.situation.batterSummary = `${h}-${ab}`;
+                            }
+                        }
+                    }
                 }
             }
         } catch (e) {
