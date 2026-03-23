@@ -56,6 +56,7 @@ export default function GameDetailPage({ gameId, onBack }) {
 
     const isLive = game.state === 'in';
     const isFinal = game.state === 'post';
+    const isPregame = game.state === 'pre';
     const status = game.shortDetail || game.statusDetail || '';
     const sit = game.situation;
 
