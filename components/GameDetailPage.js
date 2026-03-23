@@ -87,43 +87,46 @@ export default function GameDetailPage({ gameId, onBack }) {
                     </div>
                 </div>
 
-                {/* Live Situation: Batter/Pitcher + Diamond */}
-                {isLive && sit && (
-                    <div className="card" style={{ padding: '14px 16px', marginBottom: '16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '10px' }}>
-                            <Diamond situation={sit} />
-                            <Outs count={sit.outs} />
-                            <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                                {sit.balls}-{sit.strikes}
-                            </span>
-                        </div>
-                        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                            {sit.batter && (
-                                <div style={{ flex: 1, minWidth: '140px', padding: '8px 12px', background: 'rgba(var(--accent-rgb, 99,102,241), 0.08)', borderRadius: '8px' }}>
-                                    <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px', marginBottom: '4px' }}>At Bat</div>
-                                    <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{sit.batter}</div>
-                                    {sit.batterSummary && <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{sit.batterSummary}</div>}
-                                </div>
-                            )}
-                            {sit.pitcher && (
-                                <div style={{ flex: 1, minWidth: '140px', padding: '8px 12px', background: 'rgba(var(--accent-rgb, 99,102,241), 0.08)', borderRadius: '8px' }}>
-                                    <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px', marginBottom: '4px' }}>Pitching</div>
-                                    <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{sit.pitcher}</div>
-                                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                                        {sit.pitcherSummary || ''}
-                                        {sit.pitchCount != null && <span> · {sit.pitchCount}P</span>}
-                                        {sit.pitcherERA != null && <span> · {sit.pitcherERA} ERA</span>}
-                                        {sit.pitcherK != null && <span> · {sit.pitcherK}K</span>}
+                {/* Upper Matrix: Matchup & Linescore (Desktop Side-by-Side) */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '16px', alignItems: 'stretch' }}>
+                    
+                    {/* Live Situation: Batter/Pitcher + Diamond (Left) */}
+                    {isLive && sit && (
+                        <div className="card" style={{ flex: '1 1 320px', padding: '14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '10px' }}>
+                                <Diamond situation={sit} />
+                                <Outs count={sit.outs} />
+                                <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                                    {sit.balls}-{sit.strikes}
+                                </span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                                {sit.batter && (
+                                    <div style={{ flex: 1, minWidth: '140px', padding: '8px 12px', background: 'rgba(var(--accent-rgb, 99,102,241), 0.08)', borderRadius: '8px' }}>
+                                        <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px', marginBottom: '4px' }}>At Bat</div>
+                                        <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{sit.batter}</div>
+                                        {sit.batterSummary && <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{sit.batterSummary}</div>}
                                     </div>
-                                </div>
-                            )}
+                                )}
+                                {sit.pitcher && (
+                                    <div style={{ flex: 1, minWidth: '140px', padding: '8px 12px', background: 'rgba(var(--accent-rgb, 99,102,241), 0.08)', borderRadius: '8px' }}>
+                                        <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px', marginBottom: '4px' }}>Pitching</div>
+                                        <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{sit.pitcher}</div>
+                                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                                            {sit.pitcherSummary || ''}
+                                            {sit.pitchCount != null && <span> · {sit.pitchCount}P</span>}
+                                            {sit.pitcherERA != null && <span> · {sit.pitcherERA} ERA</span>}
+                                            {sit.pitcherK != null && <span> · {sit.pitcherK}K</span>}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {/* Linescore */}
-                {game.linescore && (
-                    <div className="card" style={{ padding: '12px', marginBottom: '16px', overflow: 'auto' }}>
+                    {/* Linescore (Right) */}
+                    {game.linescore && (
+                        <div className="card" style={{ flex: '2 1 400px', padding: '12px', overflow: 'auto' }}>
                         <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)' }}>Linescore</h3>
                         <table className="linescore-table">
                             <thead>
@@ -154,17 +157,22 @@ export default function GameDetailPage({ gameId, onBack }) {
                         </table>
                     </div>
                 )}
+                </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px', marginBottom: '16px', alignItems: 'flex-start' }}>
-                    {/* Live Box Score */}
+                {/* Lower Matrix: Live Box Score & Play-by-Play Wrapper */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '16px', alignItems: 'flex-start' }}>
+                    
+                    {/* Live Box Score (Wide Left) */}
                     {boxscore && (boxscore.home?.batters?.length > 0 || boxscore.away?.batters?.length > 0) ? (
-                        <div style={{ flex: 1 }}>
+                        <div style={{ flex: '2 1 600px', minWidth: '0' }}>
                             <BoxscoreTabs boxscore={boxscore} away={game.away} home={game.home} />
                         </div>
-                    ) : <div style={{ flex: 1 }}></div>}
+                    ) : (
+                        <div style={{ flex: '2 1 600px', minWidth: '0' }}></div>
+                    )}
 
-                    {/* Play-by-Play Wrapper */}
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {/* Play-by-Play Wrapper (Sidebar Right) */}
+                    <div style={{ flex: '1 1 320px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         {/* Key Plays */}
                         {keyPlays.length > 0 && (
                             <div className="card" style={{ padding: '16px' }}>
