@@ -125,7 +125,43 @@ export default function GameDetailPage({ gameId, onBack }) {
                     </div>
                 )}
 
+                {/* Pre-Game "Tale of the Tape" Hero Display */}
+                {isPregame && (
+                    <div className="card" style={{ padding: '48px 20px', textAlign: 'center', marginBottom: '16px', background: 'var(--gradient-card)', border: '1px solid var(--border-color)', borderRadius: '16px', boxShadow: 'var(--shadow-lg)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8vw', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <img src={game.away?.logo} alt={game.away?.name} style={{ width: '100px', height: '100px', marginBottom: '16px', filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.15))' }} onError={(e) => { e.target.style.display = 'none'; }} />
+                                <h3 style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{game.away?.abbr || game.away?.name}</h3>
+                                <p style={{ color: 'var(--text-secondary)', fontWeight: 600, marginTop: '4px' }}>{game.away?.record}</p>
+                            </div>
+                            
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <div style={{ fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '3px', color: 'var(--accent)', marginBottom: '8px' }}>MATCHUP</div>
+                                <div style={{ fontSize: '42px', fontWeight: 900, color: 'var(--text-muted)', opacity: 0.3, fontStyle: 'italic', lineHeight: 1 }}>VS</div>
+                            </div>
+                            
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <img src={game.home?.logo} alt={game.home?.name} style={{ width: '100px', height: '100px', marginBottom: '16px', filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.15))' }} onError={(e) => { e.target.style.display = 'none'; }} />
+                                <h3 style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{game.home?.abbr || game.home?.name}</h3>
+                                <p style={{ color: 'var(--text-secondary)', fontWeight: 600, marginTop: '4px' }}>{game.home?.record}</p>
+                            </div>
+                        </div>
+                        
+                        <div style={{ marginTop: '48px', padding: '24px 48px', background: 'var(--bg-primary)', borderRadius: '12px', display: 'inline-block', border: '1px solid var(--border-color)' }}>
+                            <div style={{ fontSize: '12px', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-muted)', marginBottom: '8px', letterSpacing: '1px' }}>Scheduled First Pitch</div>
+                            <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)' }}>
+                                {game.startTime ? new Date(game.startTime).toLocaleString('en-US', { weekday: 'long', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'TBD'}
+                            </div>
+                            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '12px' }}>
+                                {game.venue && <div style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 500 }}>🏟️ {game.venue}</div>}
+                                {game.broadcast && <div style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 500 }}>📺 {game.broadcast}</div>}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Upper Matrix: Matchup & Linescore (Desktop Side-by-Side) */}
+                {!isPregame && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '16px', alignItems: 'stretch' }}>
                     
                     {/* Live Situation: Batter/Pitcher + Diamond (Left) */}
@@ -196,8 +232,10 @@ export default function GameDetailPage({ gameId, onBack }) {
                     </div>
                 )}
                 </div>
+                )}
 
                 {/* Lower Matrix: Live Box Score & Play-by-Play Wrapper */}
+                {!isPregame && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '16px', alignItems: 'flex-start' }}>
                     
                     {/* Live Box Score (Wide Left) */}
@@ -253,9 +291,10 @@ export default function GameDetailPage({ gameId, onBack }) {
                         </div>
                     </div>
                 </div>
+                )}
 
-                {/* Game Info */}
-                {(game.venue || game.broadcast) && (
+                {/* Game Info (Only if not pregame, since pregame block has it) */}
+                {!isPregame && (game.venue || game.broadcast) && (
                     <div className="card" style={{ padding: '16px', marginTop: '16px' }}>
                         <h3 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)' }}>Game Info</h3>
                         {game.venue && <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{game.venue}</p>}
