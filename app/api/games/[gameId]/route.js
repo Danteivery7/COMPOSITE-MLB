@@ -121,6 +121,44 @@ export async function GET(request, { params }) {
         const venue = summary.gameInfo?.venue?.fullName || '';
         const broadcast = summary.header?.competitions?.[0]?.broadcasts?.[0]?.media?.shortName || '';
 
+        // Parse Player Boxscores
+        const parseBoxscoreTeam = (teamId) => {
+            const teamData = summary.boxscore?.players?.find(p => p.team?.id === teamId);
+            if (!teamData || !teamData.statistics) return { batters: [], pitchers: [], labels: { batting: [], pitching: [] } };
+            
+            const batters = [];
+            const pitchers = [];
+            const labels = { batting: [], pitching: [] };
+
+            for (const group of teamData.statistics) {
+                const isBatting = group.type === 'batting';
+                const isPitching = group.type === 'pitching';
+                if (!isBatting && !isPitching) continue;
+
+                if (isBatting) labels.batting = group.labels || [];
+                if (isPitching) labels.pitching = group.labels || [];
+
+                for (const athlete of group.athletes || []) {
+                    const mapped = {
+                        id: athlete.athlete?.id,
+                        name: athlete.athlete?.displayName || athlete.athlete?.shortName,
+                        position: athlete.athlete?.position?.abbreviation,
+                        starter: athlete.starter,
+                        batOrder: athlete.batOrder,
+                        stats: athlete.stats || [],
+                    };
+                    if (isBatting) batters.push(mapped);
+                    if (isPitching) pitchers.push(mapped);
+                }
+            }
+            return { batters, pitchers, labels };
+        };
+
+        const boxscore = {
+            home: parseBoxscoreTeam(homeComp?.team?.id),
+            away: parseBoxscoreTeam(awayComp?.team?.id)
+        };
+
         const result = {
             game: {
                 id: gameId,
@@ -139,6 +177,7 @@ export async function GET(request, { params }) {
             },
             plays,
             keyPlays,
+            boxscore,
             lastUpdated: new Date().toISOString(),
         };
 

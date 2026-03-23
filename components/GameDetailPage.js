@@ -6,6 +6,7 @@ export default function GameDetailPage({ gameId, onBack }) {
     const [game, setGame] = useState(null);
     const [plays, setPlays] = useState([]);
     const [keyPlays, setKeyPlays] = useState([]);
+    const [boxscore, setBoxscore] = useState(null);
     const [loading, setLoading] = useState(true);
     const timerRef = useRef(null);
 
@@ -17,6 +18,7 @@ export default function GameDetailPage({ gameId, onBack }) {
             setGame(json.game);
             setPlays(json.plays || []);
             setKeyPlays(json.keyPlays || []);
+            setBoxscore(json.boxscore || null);
         } catch (err) {
             console.error('Game fetch error:', err);
         } finally {
@@ -192,6 +194,11 @@ export default function GameDetailPage({ gameId, onBack }) {
                     )}
                 </div>
 
+                {/* Live Box Score */}
+                {boxscore && (boxscore.home?.batters?.length > 0 || boxscore.away?.batters?.length > 0) && (
+                    <BoxscoreTabs boxscore={boxscore} away={game.away} home={game.home} />
+                )}
+
                 {/* Game Info */}
                 {(game.venue || game.broadcast) && (
                     <div className="card" style={{ padding: '16px', marginTop: '16px' }}>
@@ -205,6 +212,71 @@ export default function GameDetailPage({ gameId, onBack }) {
                         )}
                     </div>
                 )}
+            </div>
+        </div>
+    );
+}
+
+function BoxscoreTabs({ boxscore, away, home }) {
+    const [activeTab, setActiveTab] = useState('away');
+
+    const data = activeTab === 'away' ? boxscore.away : boxscore.home;
+    const team = activeTab === 'away' ? away : home;
+    if (!data) return null;
+
+    return (
+        <div className="card" style={{ padding: '16px', marginBottom: '16px', marginTop: '16px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                <button 
+                    style={{ flex: 1, padding: '10px', border: 'none', background: activeTab === 'away' ? 'var(--accent)' : 'rgba(255,255,255,0.05)', color: activeTab === 'away' ? '#fff' : 'var(--text-primary)', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}
+                    onClick={() => setActiveTab('away')}>{away?.abbr || away?.name} Box</button>
+                <button 
+                    style={{ flex: 1, padding: '10px', border: 'none', background: activeTab === 'home' ? 'var(--accent)' : 'rgba(255,255,255,0.05)', color: activeTab === 'home' ? '#fff' : 'var(--text-primary)', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}
+                    onClick={() => setActiveTab('home')}>{home?.abbr || home?.name} Box</button>
+            </div>
+
+            <h4 style={{ fontSize: '13px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px' }}>Hitters</h4>
+            <div style={{ overflowX: 'auto', marginBottom: '24px' }}>
+                <table className="linescore-table" style={{ width: '100%', fontSize: '13px' }}>
+                    <thead>
+                        <tr>
+                            <th style={{ textAlign: 'left', minWidth: '140px' }}>Batter</th>
+                            {data.labels?.batting?.map((l, i) => <th key={i} style={{ textAlign: 'right' }}>{l}</th>)}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {data.batters?.map((b, idx) => (
+                            <tr key={b.id || idx}>
+                                <td style={{ textAlign: 'left', fontWeight: b.starter ? 600 : 400 }}>
+                                    {b.name} <span style={{ color: 'var(--text-muted)', fontSize: '11px', marginLeft: '4px' }}>{b.position}</span>
+                                </td>
+                                {b.stats?.map((s, i) => <td key={i} style={{ textAlign: 'right', color: 'var(--text-secondary)' }}>{s}</td>)}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            <h4 style={{ fontSize: '13px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px' }}>Pitchers</h4>
+            <div style={{ overflowX: 'auto' }}>
+                <table className="linescore-table" style={{ width: '100%', fontSize: '13px' }}>
+                    <thead>
+                        <tr>
+                            <th style={{ textAlign: 'left', minWidth: '140px' }}>Pitcher</th>
+                            {data.labels?.pitching?.map((l, i) => <th key={i} style={{ textAlign: 'right' }}>{l}</th>)}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {data.pitchers?.map((p, idx) => (
+                            <tr key={p.id || idx}>
+                                <td style={{ textAlign: 'left', fontWeight: p.starter ? 600 : 400 }}>
+                                    {p.name}
+                                </td>
+                                {p.stats?.map((s, i) => <td key={i} style={{ textAlign: 'right', color: 'var(--text-secondary)' }}>{s}</td>)}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
         </div>
     );
