@@ -1,0 +1,76 @@
+{
+  "displayName": "2026 Pitching",
+  "labels": [
+    "GP",
+    "GS",
+    "CG",
+    "SHO",
+    "IP",
+    "H",
+    "R",
+    "ER",
+    "HR",
+    "BB",
+    "K"
+  ],
+  "names": [
+    "gamesPlayed",
+    "gamesStarted",
+    "completeGames",
+    "shutouts",
+    "innings",
+    "hits",
+    "runs",
+    "earnedRuns",
+    "homeRuns",
+    "walks",
+    "strikeouts"
+  ],
+  "displayNames": [
+    "Games Played",
+    "Games Started",
+    "Complete Games",
+    "Shutouts",
+    "Innings pitched",
+    "Hits",
+    "Runs",
+    "Earned runs",
+    "Home Runs",
+    "Walks",
+    "Strikeouts"
+  ],
+  "splits": [
+    {
+      "displayName": "Preseason",
+      "stats": [
+        "1",
+        "1",
+        "0",
+        "0",
+        "4.1",
+        "1",
+        "0",
+        "0",
+        "0",
+        "2",
+        "4"
+      ]
+    },
+    {
+      "displayName": "Career",
+      "stats": [
+        "100",
+        "100",
+        "1",
+        "1",
+        "528.2",
+        "388",
+        "184",
+        "176",
+        "56",
+        "182",
+        "670"
+      ]
+    }
+  ]
+}
