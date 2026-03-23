@@ -226,12 +226,21 @@ function GameCard({ game, formatTime, index, onGameClick }) {
             </div>
 
             {isLive && game.situation && (
-                <div className="game-footer">
-                    <Diamond situation={game.situation} />
-                    <Outs count={game.situation.outs} />
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                        {game.situation.balls}-{game.situation.strikes}
-                    </span>
+                <div className="game-footer" style={{ alignItems: 'flex-start', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <Diamond situation={game.situation} />
+                        <Outs count={game.situation.outs} />
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
+                            {game.situation.balls}-{game.situation.strikes}
+                        </span>
+                    </div>
+                    {/* Live Matchup Strings */}
+                    {(game.situation.pitcher || game.situation.batter) && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '11px' }}>
+                            {game.situation.pitcher && <div><span style={{ color: 'var(--text-muted)', fontWeight: 600, marginRight: '4px' }}>P:</span><span style={{ color: 'var(--text-primary)' }}>{game.situation.pitcher}</span></div>}
+                            {game.situation.batter && <div><span style={{ color: 'var(--text-muted)', fontWeight: 600, marginRight: '4px' }}>AB:</span><span style={{ color: 'var(--text-primary)' }}>{game.situation.batter}</span></div>}
+                        </div>
+                    )}
                 </div>
             )}
         </div>
