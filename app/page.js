@@ -14,7 +14,7 @@ import GameDetailPage from '@/components/GameDetailPage';
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState('live');
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState('light');
   const [favorites, setFavorites] = useState([]);
   const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [selectedPlayerId, setSelectedPlayerId] = useState(null);
