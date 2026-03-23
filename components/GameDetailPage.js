@@ -87,6 +87,44 @@ export default function GameDetailPage({ gameId, onBack }) {
                     </div>
                 </div>
 
+                {isFinal && game.postGameOptions && (
+                    <div className="card" style={{ marginBottom: '16px', padding: '14px 18px' }}>
+                        {game.postGameOptions.pog && (
+                            <div className="pog-banner" style={{ padding: '12px 16px', marginBottom: '12px' }}>
+                                <div className="pog-tag" style={{ fontSize: '12px' }}>👑 POG</div>
+                                <img src={game.postGameOptions.pog.headshot} alt="POG" className="pog-headshot" style={{ width: '40px', height: '40px' }} onError={(e) => e.target.style.display='none'} />
+                                <div className="pog-info">
+                                    <span className="pog-name" style={{ fontSize: '15px' }}>{game.postGameOptions.pog.name}</span>
+                                    <span className="pog-stats" style={{ fontSize: '13px' }}>{game.postGameOptions.pog.statLine}</span>
+                                </div>
+                            </div>
+                        )}
+                        <div className="postgame-decisions">
+                            {game.postGameOptions.winningPitcher && (
+                                <div className="decision-pill" style={{ fontSize: '13px' }}>
+                                    <strong>W:</strong>
+                                    <img src={game.postGameOptions.winningPitcher.headshot} alt="W" style={{ width: '24px', height: '24px' }} onError={(e) => e.target.style.display='none'} />
+                                    <span>{game.postGameOptions.winningPitcher.name}</span>
+                                </div>
+                            )}
+                            {game.postGameOptions.losingPitcher && (
+                                <div className="decision-pill" style={{ fontSize: '13px', marginLeft: '8px' }}>
+                                    <strong>L:</strong>
+                                    <img src={game.postGameOptions.losingPitcher.headshot} alt="L" style={{ width: '24px', height: '24px' }} onError={(e) => e.target.style.display='none'} />
+                                    <span>{game.postGameOptions.losingPitcher.name}</span>
+                                </div>
+                            )}
+                            {game.postGameOptions.savingPitcher && (
+                                <div className="decision-pill" style={{ fontSize: '13px', marginLeft: '8px' }}>
+                                    <strong>S:</strong>
+                                    <img src={game.postGameOptions.savingPitcher.headshot} alt="S" style={{ width: '24px', height: '24px' }} onError={(e) => e.target.style.display='none'} />
+                                    <span>{game.postGameOptions.savingPitcher.name}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 {/* Upper Matrix: Matchup & Linescore (Desktop Side-by-Side) */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '16px', alignItems: 'stretch' }}>
                     
@@ -114,7 +152,7 @@ export default function GameDetailPage({ gameId, onBack }) {
                                         <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{sit.pitcher}</div>
                                         <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                                             {sit.pitcherSummary || ''}
-                                            {sit.pitchCount != null && <span> · {sit.pitchCount}P</span>}
+                                            {sit.pitchCount != null && <span> · {sit.pitchCount}P{sit.strikeCount ? ` (${sit.strikeCount}S)` : ''}</span>}
                                             {sit.pitcherERA != null && <span> · {sit.pitcherERA} ERA</span>}
                                             {sit.pitcherK != null && <span> · {sit.pitcherK}K</span>}
                                         </div>

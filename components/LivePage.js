@@ -243,6 +243,44 @@ function GameCard({ game, formatTime, index, onGameClick }) {
                     )}
                 </div>
             )}
+
+            {isFinal && game.postGameOptions && (
+                <div className="game-postgame">
+                    <div className="postgame-decisions">
+                        {game.postGameOptions.winningPitcher && (
+                            <div className="decision-pill">
+                                <strong>W:</strong>
+                                <img src={game.postGameOptions.winningPitcher.headshot} alt="W" onError={(e) => e.target.style.display='none'} />
+                                <span>{game.postGameOptions.winningPitcher.name}</span>
+                            </div>
+                        )}
+                        {game.postGameOptions.losingPitcher && (
+                            <div className="decision-pill">
+                                <strong>L:</strong>
+                                <img src={game.postGameOptions.losingPitcher.headshot} alt="L" onError={(e) => e.target.style.display='none'} />
+                                <span>{game.postGameOptions.losingPitcher.name}</span>
+                            </div>
+                        )}
+                        {game.postGameOptions.savingPitcher && (
+                            <div className="decision-pill">
+                                <strong>S:</strong>
+                                <img src={game.postGameOptions.savingPitcher.headshot} alt="S" onError={(e) => e.target.style.display='none'} />
+                                <span>{game.postGameOptions.savingPitcher.name}</span>
+                            </div>
+                        )}
+                    </div>
+                    {game.postGameOptions.pog && (
+                        <div className="pog-banner">
+                            <div className="pog-tag">👑 POG</div>
+                            <img src={game.postGameOptions.pog.headshot} alt="POG" className="pog-headshot" onError={(e) => e.target.style.display='none'} />
+                            <div className="pog-info">
+                                <span className="pog-name">{game.postGameOptions.pog.name}</span>
+                                <span className="pog-stats">{game.postGameOptions.pog.statLine}</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

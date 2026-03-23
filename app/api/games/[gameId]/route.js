@@ -206,7 +206,13 @@ export async function GET(request, { params }) {
                                 result.game.situation.pitcherERA = getStat('ERA');
                                 result.game.situation.pitcherK = getStat('K');
                                 const pcst = getStat('PC-ST');
-                                if (pcst) result.game.situation.pitchCount = pcst.split('-')[0];
+                                if (pcst) {
+                                    const parts = pcst.split('-');
+                                    result.game.situation.pitchCount = parts[0];
+                                    if (parts.length > 1) {
+                                        result.game.situation.strikeCount = parts[1];
+                                    }
+                                }
                             }
                         }
 
@@ -221,6 +227,9 @@ export async function GET(request, { params }) {
                                 result.game.situation.batterSummary = `${h}-${ab}`;
                             }
                         }
+                    }
+                    if (sbGame.postGameOptions) {
+                        result.game.postGameOptions = sbGame.postGameOptions;
                     }
                 }
             }
