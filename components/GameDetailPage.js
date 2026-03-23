@@ -66,6 +66,7 @@ export default function GameDetailPage({ gameId, onBack }) {
 
             <div className="game-detail">
                 {/* Scoreboard */}
+                {!isPregame && (
                 <div className="game-detail-header">
                     <div className="game-detail-team">
                         <img src={game.away?.logo} alt={game.away?.name} className="team-logo" onError={(e) => { e.target.style.display = 'none'; }} />
@@ -87,6 +88,7 @@ export default function GameDetailPage({ gameId, onBack }) {
                         <span className="team-record">{game.home?.record}</span>
                     </div>
                 </div>
+                )}
 
                 {isFinal && game.postGameOptions && (
                     <div className="card" style={{ marginBottom: '16px', padding: '14px 18px' }}>
