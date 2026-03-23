@@ -155,6 +155,11 @@ export default function GameDetailPage({ gameId, onBack }) {
                     </div>
                 )}
 
+                {/* Live Box Score */}
+                {boxscore && (boxscore.home?.batters?.length > 0 || boxscore.away?.batters?.length > 0) && (
+                    <BoxscoreTabs boxscore={boxscore} away={game.away} home={game.home} />
+                )}
+
                 {/* Key Plays */}
                 {keyPlays.length > 0 && (
                     <div className="card" style={{ padding: '16px', marginBottom: '16px' }}>
@@ -193,11 +198,6 @@ export default function GameDetailPage({ gameId, onBack }) {
                         </div>
                     )}
                 </div>
-
-                {/* Live Box Score */}
-                {boxscore && (boxscore.home?.batters?.length > 0 || boxscore.away?.batters?.length > 0) && (
-                    <BoxscoreTabs boxscore={boxscore} away={game.away} home={game.home} />
-                )}
 
                 {/* Game Info */}
                 {(game.venue || game.broadcast) && (
