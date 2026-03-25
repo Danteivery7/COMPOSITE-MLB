@@ -176,7 +176,7 @@ export async function GET(request, { params }) {
                 expectedStats,
                 expectedBatting,
                 expectedPitching,
-                aiAnalysis: generatePlayerAnalysis(playerData, isTwoWay ? (isPitcher ? pitchingStats : battingStats) : currentSeasonStats, careerStats, gameLogRes?.logs || []),
+                aiAnalysis: generatePlayerAnalysis(playerData, isTwoWay ? (isPitcher ? pitchingStats : battingStats) : currentSeasonStats, careerStats, gameLogRes?.logs || [], playerData.statusLabel, battingStats, pitchingStats),
             },
         };
 
