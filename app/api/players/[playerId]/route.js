@@ -45,6 +45,7 @@ export async function GET(request, { params }) {
             batHand: bio.bats?.displayValue || null,
             throwHand: bio.throws?.displayValue || null,
             rating: ratingData?.rating || 40,
+            statusLabel: bio.status?.type || bio.status?.name || 'Active', // IL, DFA, Active, etc.
         };
 
         // Parse current + career from overview
