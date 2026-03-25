@@ -33,14 +33,21 @@ export async function GET(request, { params }) {
         const parseTeam = (comp) => {
             if (!comp) return null;
             const t = comp.team || {};
-            const rec = Array.isArray(comp.record) ? comp.record[0]?.summary || '' : comp.record || '';
+            const recArr = Array.isArray(comp.record) ? comp.record : [];
+            const summary = recArr[0]?.summary || comp.record || '';
+            
+            // Opening Day Sync: If record shows > 10 games, it's stale Spring Training data.
+            const totalGames = summary.split('-').reduce((a, b) => parseInt(a) + parseInt(b), 0);
+            const isStale = totalGames > 10;
+            const isPre = competitions.season?.type === 1 || isStale;
+
             return {
                 name: t.displayName || t.shortDisplayName || t.name,
                 abbr: t.abbreviation,
                 logo: t.logos?.[0]?.href || `https://a.espncdn.com/i/teamlogos/mlb/500/scoreboard/${t.abbreviation?.toLowerCase()}.png`,
                 score: parseInt(comp.score) || 0,
                 winner: comp.winner,
-                record: rec,
+                record: isPre ? '0-0' : summary,
             };
         };
 
@@ -71,6 +78,22 @@ export async function GET(request, { params }) {
         if (situationData) {
             const bat = situationData.batter || {};
             const pit = situationData.pitcher || {};
+            
+            const isPreStatus = competitions.season?.type === 1;
+            
+            // Heuristic for player summaries: if they contain > 10 AB or > 5 IP in the summary string, it's season stats.
+            // On Opening Day (season type 2), if the player hasn't played today, we should hide these.
+            const sanitizeSummary = (s) => {
+                if (!s) return null;
+                const match = s.match(/(\d+)\s+IP|(\d+)-(\d+)/);
+                if (match) {
+                    const ip = match[1] ? parseFloat(match[1]) : 0;
+                    const ab = match[3] ? parseInt(match[3]) : 0;
+                    if (ip > 5 || ab > 10) return isPreStatus ? null : '0-0'; // Force reset
+                }
+                return s;
+            };
+
             situation = {
                 onFirst: situationData.onFirst || false,
                 onSecond: situationData.onSecond || false,
@@ -80,10 +103,10 @@ export async function GET(request, { params }) {
                 strikes: situationData.strikes || 0,
                 batter: bat.athlete?.displayName || null,
                 batterId: bat.athlete?.id || null,
-                batterSummary: bat.summary || null, // e.g. "1-3, HR, 2B"
+                batterSummary: sanitizeSummary(bat.summary),
                 pitcher: pit.athlete?.displayName || null,
                 pitcherId: pit.athlete?.id || null,
-                pitcherSummary: pit.summary || null, // e.g. "5.0 IP, 3 H, 1 ER, 7 K"
+                pitcherSummary: sanitizeSummary(pit.summary),
                 pitchCount: pit.pitchCount || null,
                 pitcherERA: pit.era || null,
                 pitcherK: pit.strikeouts || null,
