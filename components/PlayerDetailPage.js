@@ -71,6 +71,23 @@ export default function PlayerDetailPage({ playerId, onBack }) {
                     </div>
                 </div>
 
+                {/* AI Performance Analysis */}
+                {p.aiAnalysis && (
+                    <div className="card ai-analysis-card" style={{ marginBottom: '24px', borderLeft: '4px solid var(--accent)', padding: '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                            <span style={{ fontSize: '20px' }}>🤖</span>
+                            <h3 style={{ margin: 0, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent)' }}>AI Performance Analysis</h3>
+                        </div>
+                        <div style={{ fontSize: '15px', lineHeight: '1.7', color: 'var(--text-primary)', fontStyle: 'italic' }}>
+                            {p.aiAnalysis.split('\n\n').map((para, i) => (
+                                <p key={i} style={{ marginBottom: i < p.aiAnalysis.split('\n\n').length - 1 ? '12px' : 0 }}>
+                                    "{para}"
+                                </p>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Current Season Stats (determines OVR) */}
                 {p.isTwoWay ? (
                     <>

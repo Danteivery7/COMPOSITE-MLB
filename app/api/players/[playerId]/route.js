@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { fetchPlayerStats } from '@/lib/espn';
+import { fetchPlayerStats, fetchPlayerGameLogs } from '@/lib/espn';
 import { computePlayerRating } from '@/lib/players';
 import { cacheGet, cacheSet } from '@/lib/cache';
+import { generatePlayerAnalysis } from '@/lib/ai';
 
 export async function GET(request, { params }) {
     const { playerId } = await params;
@@ -10,10 +11,11 @@ export async function GET(request, { params }) {
     if (cached) return NextResponse.json(cached);
 
     try {
-        const [bioRes, overviewRes, currentStats] = await Promise.all([
+        const [bioRes, overviewRes, currentStats, gameLogRes] = await Promise.all([
             fetchJSON(`https://sports.core.api.espn.com/v2/sports/baseball/leagues/mlb/athletes/${playerId}`),
             fetchJSON(`https://site.api.espn.com/apis/common/v3/sports/baseball/mlb/athletes/${playerId}/overview`),
-            fetchPlayerStats(playerId), // Same function used by top-100 → consistent OVR
+            fetchPlayerStats(playerId), 
+            fetchPlayerGameLogs(playerId),
         ]);
 
         const bio = bioRes || {};
@@ -173,6 +175,7 @@ export async function GET(request, { params }) {
                 expectedStats,
                 expectedBatting,
                 expectedPitching,
+                aiAnalysis: generatePlayerAnalysis(playerData, isTwoWay ? (isPitcher ? pitchingStats : battingStats) : currentSeasonStats, careerStats, gameLogRes?.logs || []),
             },
         };
 

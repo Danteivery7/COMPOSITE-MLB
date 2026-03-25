@@ -61,6 +61,7 @@ export default function RankingsPage({ favorites, toggleFavorite, onTeamClick })
         result.sort((a, b) => {
             switch (sortBy) {
                 case 'ovrRank': return a.ovrRank - b.ovrRank;
+                case 'hottness': return (b.hotScore || 0) - (a.hotScore || 0);
                 case 'offRank': return a.offRank - b.offRank;
                 case 'defRank': return a.defRank - b.defRank;
                 case 'winPct':
@@ -159,6 +160,7 @@ export default function RankingsPage({ favorites, toggleFavorite, onTeamClick })
                     onChange={(e) => setSortBy(e.target.value)}
                 >
                     <option value="ovrRank">Sort: OVR Rank</option>
+                    <option value="hottness">Sort: Hottness 🔥</option>
                     <option value="offRank">Sort: OFF Rank</option>
                     <option value="defRank">Sort: DEF Rank</option>
                     <option value="winPct">Sort: Win %</option>
@@ -210,8 +212,27 @@ export default function RankingsPage({ favorites, toggleFavorite, onTeamClick })
                                             onError={(e) => { e.target.style.display = 'none'; }}
                                         />
                                         <div className="team-info">
-                                            <span className="team-name">{team.city} {team.name}</span>
-                                            <span className="team-record">{team.wins}-{team.losses}</span>
+                                            <div className="team-name-row">
+                                                <span className="team-name">{team.city} {team.name}</span>
+                                                <span className={`streak-tag ${team.streakNum > 0 ? 'up' : team.streakNum < 0 ? 'down' : ''}`}>
+                                                    {team.streak}
+                                                </span>
+                                            </div>
+                                            <div className="last-5-row">
+                                                {(team.last5 || []).map((g, gi) => (
+                                                    <div key={gi} className={`last-5-dot ${g.result}`}>
+                                                        <img 
+                                                            src={g.opponent?.logo} 
+                                                            alt={g.opponent?.abbr} 
+                                                            title={`${g.result} vs ${g.opponent?.abbr} (${g.teamScore}-${g.oppScore})`}
+                                                        />
+                                                        <span className="dot-result">{g.result}</span>
+                                                    </div>
+                                                ))}
+                                                {(!team.last5 || team.last5.length === 0) && (
+                                                    <span className="no-last-5">Season Pending</span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </td>
