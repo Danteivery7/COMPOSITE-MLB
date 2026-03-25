@@ -902,38 +902,68 @@ img {
 
 .last-5-dot {
   position: relative;
-  width: 20px;
-  height: 20px;
-  background: var(--bg-input);
-  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  background: var(--bg-secondary);
+  border-radius: 6px; /* Squircle style */
   display: flex;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--border-color);
-  overflow: hidden;
   transition: all var(--transition-fast);
+  cursor: help;
 }
 
 .last-5-dot:hover {
-  transform: scale(1.2);
-  z-index: 10;
-  border-color: var(--text-accent);
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .last-5-dot img {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .last-5-dot.W {
-  border-color: rgba(34, 197, 94, 0.4);
-  background: rgba(34, 197, 94, 0.05);
+  border-color: var(--accent-green);
+  background: rgba(34, 197, 94, 0.1);
 }
 
 .last-5-dot.L {
-  border-color: rgba(239, 68, 68, 0.2);
+  border-color: var(--accent-red);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.last-5-dot .dot-result {
+  display: none; /* Hide text, use title or hover for more info */
+}
+
+.last-5-dot .dot-result-pop {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  opacity: 0;
+  pointer-events: none;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  box-shadow: var(--shadow-md);
+  z-index: 20;
+}
+
+.last-5-dot:hover .dot-result-pop {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 .no-last-5 {
