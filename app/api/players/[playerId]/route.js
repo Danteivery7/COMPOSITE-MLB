@@ -26,7 +26,8 @@ export async function GET(request, { params }) {
         // If they had dual roles in roster or have dual career stats, treat as two-way
         const isOhtani = String(playerId) === '39832';
         const isRosterTwoWay = (bio.position?.abbreviation === 'SP/DH' || bio.position?.abbreviation === 'DH/SP') && isOhtani;
-        const ratingData = computePlayerRating(currentStats || { batting: {}, pitching: {} }, isRosterTwoWay ? 'two-way' : (isPitcher || bio.position?.abbreviation === 'DH'), bio.position?.abbreviation, playerId);
+        const careerFromStats = currentStats?.career || { batting: {}, pitching: {} };
+        const ratingData = computePlayerRating(currentStats || { batting: {}, pitching: {} }, isRosterTwoWay ? 'two-way' : (isPitcher || bio.position?.abbreviation === 'DH'), bio.position?.abbreviation, playerId, careerFromStats);
 
         let isTwoWay = ratingData.type === 'two-way' || isRosterTwoWay;
 

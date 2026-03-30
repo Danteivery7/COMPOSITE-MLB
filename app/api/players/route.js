@@ -52,12 +52,13 @@ async function computeTop50() {
 
     // Compute ratings
     const rated = allPlayers.map(p => {
-        const stats = statsMap[p.id] || { batting: {}, pitching: {} };
+        const stats = statsMap[p.id] || { batting: {}, pitching: {}, career: { batting: {}, pitching: {} } };
+        const careerRaw = stats.career || { batting: {}, pitching: {} };
         // Use SAME rating computation as top-100 list
         // If they had dual roles in roster or have dual career stats, treat as two-way
         const isOhtani = String(p.id) === '39832';
         const isRosterTwoWay = (p.position === 'SP/DH' || p.position === 'DH/SP') && isOhtani;
-        const ratingData = computePlayerRating(stats, isRosterTwoWay ? 'two-way' : (p.isPitcher || p.position === 'DH'), p.position, p.id);
+        const ratingData = computePlayerRating(stats, isRosterTwoWay ? 'two-way' : (p.isPitcher || p.position === 'DH'), p.position, p.id, careerRaw);
 
         let isTwoWay = ratingData.type === 'two-way' || isRosterTwoWay;
 
