@@ -30,19 +30,23 @@ function getGameStatus(game) {
         // Build inning label from ESPN data
         const inning = game.period || 0;
         const ordinal = getOrdinal(inning);
+        const isExtraInnings = inning > 9;
 
         // Determine half-inning: ESPN statusDetail often contains "Top 3rd", "Bot 5th", "Mid 7th"
         // Also available: situation.isTopInning and inningHalf/shortDetail
         let halfLabel = '';
+        let isBetweenInnings = false;
         const detail = (game.shortDetail || game.statusDetail || '').toLowerCase();
         if (detail.startsWith('mid')) {
             halfLabel = 'Mid';
+            isBetweenInnings = true;
         } else if (detail.startsWith('bot') || detail.startsWith('bottom')) {
             halfLabel = 'Bot';
         } else if (detail.startsWith('top')) {
             halfLabel = 'Top';
         } else if (detail.startsWith('end')) {
             halfLabel = 'End';
+            isBetweenInnings = true;
         } else if (game.situation && game.situation.isTopInning !== null) {
             halfLabel = game.situation.isTopInning ? 'Top' : 'Bot';
         } else {
@@ -54,6 +58,8 @@ function getGameStatus(game) {
             label: `${halfLabel} ${ordinal}`,
             cssClass: 'live',
             isLive: true,
+            isBetweenInnings,
+            isExtraInnings,
         };
     }
 
@@ -196,10 +202,27 @@ function GameCard({ game, formatTime, index, onGameClick }) {
     const isLive = status.type === 'live';
     const isFinal = status.type === 'final';
     const isPre = ['scheduled', 'starting-soon', 'about-to-start'].includes(status.type);
+    const isExtraInnings = status.isExtraInnings || false;
+    // Walkoff: ESPN statusDetail contains "walk-off" OR home wins in extras (always a walkoff)
+    const detailLower = (game.statusDetail || game.shortDetail || '').toLowerCase();
+    const isWalkoff = isFinal && game.home?.winner && (
+        detailLower.includes('walk') || (game.period || 9) > 9
+    );
+    // Extra innings final
+    const isFinalExtras = isFinal && (game.period || 9) > 9;
+
+    const cardClasses = [
+        'game-card',
+        isLive ? 'live' : '',
+        status.type === 'about-to-start' ? 'about-to-start' : '',
+        isExtraInnings ? 'extra-innings' : '',
+        isWalkoff ? 'walkoff-win' : '',
+        isFinalExtras ? 'final-extras' : '',
+    ].filter(Boolean).join(' ');
 
     return (
-        <div className={`game-card ${isLive ? 'live' : ''} ${status.type === 'about-to-start' ? 'about-to-start' : ''}`} style={{ animationDelay: `${index * 50}ms` }} onClick={() => onGameClick && game.id && onGameClick(game.id)}>
-            <div className={`game-status ${status.cssClass}`}>
+        <div className={cardClasses} style={{ animationDelay: `${index * 50}ms` }} onClick={() => onGameClick && game.id && onGameClick(game.id)}>
+            <div className={`game-status ${status.cssClass} ${status.isBetweenInnings ? 'between-innings' : ''}`}>
                 {isLive && <span className="live-dot" />}
                 {status.type === 'about-to-start' && <span className="pulse-dot" />}
                 <span>

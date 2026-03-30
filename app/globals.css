@@ -468,6 +468,62 @@ img {
   box-shadow: 0 0 12px rgba(249, 115, 22, 0.08);
 }
 
+/* Between innings (Mid / End) — orange/red status text */
+.game-status.between-innings {
+  color: #f97316 !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.game-status.between-innings .live-dot {
+  background: #f97316;
+  animation: livePulse 1.2s ease infinite;
+}
+
+/* Extra Innings — red pulsing border like about-to-start */
+.game-card.extra-innings {
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.12), inset 0 0 0 1px rgba(239, 68, 68, 0.1);
+  animation: extraInningsPulse 2s ease-in-out infinite;
+}
+@keyframes extraInningsPulse {
+  0%, 100% { border-color: rgba(239, 68, 68, 0.5); box-shadow: 0 0 16px rgba(239, 68, 68, 0.12); }
+  50% { border-color: rgba(239, 68, 68, 0.8); box-shadow: 0 0 24px rgba(239, 68, 68, 0.25); }
+}
+
+/* Final with Extra Innings — subtle red accent */
+.game-card.final-extras {
+  border-color: rgba(239, 68, 68, 0.25);
+}
+.game-card.final-extras .game-status {
+  color: #ef4444;
+}
+
+/* Walkoff Win — golden shimmer border */
+.game-card.walkoff-win {
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.15), inset 0 0 0 1px rgba(245, 158, 11, 0.12);
+  animation: walkoffShimmer 3s ease-in-out infinite;
+}
+@keyframes walkoffShimmer {
+  0%, 100% {
+    border-color: rgba(245, 158, 11, 0.5);
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+  }
+  33% {
+    border-color: rgba(251, 191, 36, 0.7);
+    box-shadow: 0 0 28px rgba(251, 191, 36, 0.25);
+  }
+  66% {
+    border-color: rgba(245, 158, 11, 0.6);
+    box-shadow: 0 0 16px rgba(245, 158, 11, 0.12);
+  }
+}
+.game-card.walkoff-win .game-status.final {
+  color: #f59e0b;
+  font-weight: 700;
+}
+
 .game-status .pulse-dot {
   width: 6px;
   height: 6px;
