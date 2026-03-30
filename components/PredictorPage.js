@@ -227,7 +227,9 @@ export default function PredictorPage() {
                             {/* Spread & Confidence */}
                             <div className="spread-row">
                                 <span className="spread-badge spread">
-                                    Spread: {prediction.spread > 0 ? `${prediction.teamA.abbr} -${Math.abs(prediction.spread).toFixed(1)}` : `${prediction.teamB.abbr} -${Math.abs(prediction.spread).toFixed(1)}`}
+                                    Spread: {prediction.teamA.winPct > prediction.teamB.winPct 
+                                        ? `${prediction.teamA.abbr} -${Math.abs(prediction.spread).toFixed(1)}` 
+                                        : `${prediction.teamB.abbr} -${Math.abs(prediction.spread).toFixed(1)}`}
                                 </span>
                                 <span className={`confidence-badge ${prediction.confidence}`}>
                                     {prediction.confidence} Confidence
