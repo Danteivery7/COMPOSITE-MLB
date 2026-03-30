@@ -210,6 +210,21 @@ function GameCard({ game, formatTime, index, onGameClick }) {
     );
     // Extra innings final
     const isFinalExtras = isFinal && (game.period || 9) > 9;
+    
+    // Rare event detection
+    const rareEvents = game.postGameOptions?.rareEvents || [];
+    const isPerfectGame = rareEvents.some(e => e.type === 'perfect-game');
+    const isNoHitter = rareEvents.some(e => e.type === 'no-hitter') && !isPerfectGame;
+    const hasMilestone = rareEvents.some(e => e.type === 'milestone' || e.type === 'cycle');
+    const isShutout = rareEvents.some(e => e.type === 'shutout') && !isPerfectGame && !isNoHitter;
+    
+    // In-progress no-hitter detection (5+ innings, 0 hits for one team)
+    const inning = game.period || 0;
+    const awayHits = game.away?.hits ?? null;
+    const homeHits = game.home?.hits ?? null;
+    const isActiveNoHitter = isLive && inning >= 5 && (
+        (awayHits === 0) || (homeHits === 0)
+    );
 
     const cardClasses = [
         'game-card',
@@ -218,6 +233,11 @@ function GameCard({ game, formatTime, index, onGameClick }) {
         isExtraInnings ? 'extra-innings' : '',
         isWalkoff ? 'walkoff-win' : '',
         isFinalExtras ? 'final-extras' : '',
+        isPerfectGame ? 'perfect-game' : '',
+        isNoHitter ? 'no-hitter' : '',
+        isActiveNoHitter ? 'active-no-hitter' : '',
+        hasMilestone ? 'milestone-game' : '',
+        isShutout ? 'shutout-game' : '',
     ].filter(Boolean).join(' ');
 
     return (
@@ -304,6 +324,20 @@ function GameCard({ game, formatTime, index, onGameClick }) {
                     )}
                 </div>
             )}
+
+            {/* Rare event banners */}
+            {(isPerfectGame || isNoHitter || isActiveNoHitter) && (
+                <div className="rare-event-banner" style={{ background: isPerfectGame ? 'linear-gradient(135deg, rgba(168,85,247,0.15), rgba(236,72,153,0.15))' : 'linear-gradient(135deg, rgba(59,130,246,0.15), rgba(99,102,241,0.15))' }}>
+                    <span className="rare-event-label">
+                        {isPerfectGame ? '⭐ PERFECT GAME' : isActiveNoHitter ? '🚨 NO-HITTER IN PROGRESS' : '🔵 NO-HITTER'}
+                    </span>
+                </div>
+            )}
+            {hasMilestone && rareEvents.filter(e => e.type === 'milestone' || e.type === 'cycle').map((e, i) => (
+                <div key={i} className="rare-event-banner milestone">
+                    <span className="rare-event-label">{e.label}</span>
+                </div>
+            ))}
         </div>
     );
 }

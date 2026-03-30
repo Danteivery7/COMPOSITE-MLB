@@ -524,6 +524,62 @@ img {
   font-weight: 700;
 }
 
+/* Rare Event Borders & Banners */
+.game-card.perfect-game {
+  border-color: rgba(168, 85, 247, 0.6);
+  box-shadow: 0 0 24px rgba(168, 85, 247, 0.25), inset 0 0 0 1px rgba(168, 85, 247, 0.2);
+  animation: perfectGamePulse 3s ease-in-out infinite;
+}
+@keyframes perfectGamePulse {
+  0%, 100% { border-color: rgba(168, 85, 247, 0.6); box-shadow: 0 0 24px rgba(168, 85, 247, 0.25); }
+  50% { border-color: rgba(236, 72, 153, 0.8); box-shadow: 0 0 32px rgba(236, 72, 153, 0.4); }
+}
+
+.game-card.no-hitter, .game-card.active-no-hitter {
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.2), inset 0 0 0 1px rgba(59, 130, 246, 0.15);
+  animation: noHitterPulse 2.5s ease-in-out infinite;
+}
+@keyframes noHitterPulse {
+  0%, 100% { border-color: rgba(59, 130, 246, 0.6); box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
+  50% { border-color: rgba(99, 102, 241, 0.8); box-shadow: 0 0 28px rgba(99, 102, 241, 0.35); }
+}
+
+.game-card.milestone-game {
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.15);
+}
+
+.game-card.shutout-game {
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+.rare-event-banner {
+  margin-top: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.rare-event-banner.milestone {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(52, 211, 153, 0.1));
+  color: #10b981;
+}
+.rare-event-banner:not(.milestone) {
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+.rare-event-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .game-status .pulse-dot {
   width: 6px;
   height: 6px;
