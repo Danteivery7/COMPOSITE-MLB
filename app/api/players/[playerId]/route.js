@@ -3,6 +3,7 @@ import { fetchPlayerStats, fetchPlayerGameLogs } from '@/lib/espn';
 import { computePlayerRating } from '@/lib/players';
 import { cacheGet, cacheSet } from '@/lib/cache';
 import { generatePlayerAnalysis } from '@/lib/ai';
+import { getPlayerAccolades } from '@/lib/accolades';
 
 export async function GET(request, { params }) {
     const { playerId } = await params;
@@ -177,7 +178,7 @@ export async function GET(request, { params }) {
                 expectedStats,
                 expectedBatting,
                 expectedPitching,
-                aiAnalysis: generatePlayerAnalysis(playerData, isTwoWay ? (isPitcher ? pitchingStats : battingStats) : currentSeasonStats, careerStats, gameLogRes?.logs || [], playerData.statusLabel, battingStats, pitchingStats),
+                aiAnalysis: generatePlayerAnalysis(playerData, isTwoWay ? (isPitcher ? pitchingStats : battingStats) : currentSeasonStats, careerStats, gameLogRes?.logs || [], playerData.statusLabel, battingStats, pitchingStats, getPlayerAccolades(playerId).narrativeText),
             },
         };
 
