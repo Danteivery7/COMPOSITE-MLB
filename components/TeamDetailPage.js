@@ -46,7 +46,7 @@ export default function TeamDetailPage({ teamId, onBack, favorites, toggleFavori
 
     const team = data?.team || {};
     const roster = data?.roster || [];
-    const lastFive = data?.lastFiveGames || [];
+    const lastFive = data?.lastFive || [];
     const sources = data?.sources || [];
 
     const logo = `https://a.espncdn.com/i/teamlogos/mlb/500/scoreboard/${(team.logoAbbr || team.abbr)?.toLowerCase()}.png`;

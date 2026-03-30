@@ -219,18 +219,7 @@ export default function RankingsPage({ favorites, toggleFavorite, onTeamClick })
                                                 </span>
                                             </div>
                                             <div className="last-5-row">
-                                                {(team.last5 || []).map((g, gi) => (
-                                                    <div key={gi} className={`last-5-dot ${g.result}`} title={`${g.result} ${g.teamScore}-${g.oppScore} vs ${g.opponent?.abbr} (${new Date(g.date).toLocaleDateString()})`}>
-                                                        <img 
-                                                            src={g.opponent?.logo} 
-                                                            alt={g.opponent?.abbr} 
-                                                        />
-                                                        <span className="dot-result-pop">{g.result}</span>
-                                                    </div>
-                                                ))}
-                                                {(!team.last5 || team.last5.length === 0) && (
-                                                    <span className="no-last-5">Season Pending</span>
-                                                )}
+                                                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{team.wins}-{team.losses}</span>
                                             </div>
                                         </div>
                                     </div>
