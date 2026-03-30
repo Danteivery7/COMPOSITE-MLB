@@ -58,7 +58,7 @@ async function computeTop50() {
         // If they had dual roles in roster or have dual career stats, treat as two-way
         const isOhtani = String(p.id) === '39832';
         const isRosterTwoWay = (p.position === 'SP/DH' || p.position === 'DH/SP') && isOhtani;
-        const ratingData = computePlayerRating(stats, isRosterTwoWay ? 'two-way' : (p.isPitcher || p.position === 'DH'), p.position, p.id, careerRaw);
+        const ratingData = computePlayerRating(stats, isRosterTwoWay ? 'two-way' : (p.isPitcher || p.position === 'DH'), p.position, p.id, careerRaw, p.age);
 
         let isTwoWay = ratingData.type === 'two-way' || isRosterTwoWay;
 

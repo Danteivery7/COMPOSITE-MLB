@@ -41,7 +41,7 @@ async function computeTeamDetail(teamId) {
     const ratedPlayers = players.map(p => {
         const stats = statsMap[p.id] || { batting: {}, pitching: {}, career: { batting: {}, pitching: {} } };
         const careerRaw = stats.career || { batting: {}, pitching: {} };
-        const result = computePlayerRating(stats, p.isPitcher, p.position, p.id, careerRaw);
+        const result = computePlayerRating(stats, p.isPitcher, p.position, p.id, careerRaw, p.age);
         return {
             ...p,
             rating: result.rating,
