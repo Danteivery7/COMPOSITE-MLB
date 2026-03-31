@@ -268,6 +268,47 @@ function GameCard({ game, formatTime, index, onGameClick }) {
                 />
             </div>
 
+            {isPre && game.prediction && (
+                <div className="game-footer" style={{ padding: '12px', background: 'var(--bg-primary)', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.5px' }}>Live Simulation</span>
+                        <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--accent)' }}>{game.prediction.confidence} Confidence</span>
+                    </div>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, marginBottom: '4px' }}>
+                                <span>{game.prediction.teamA.abbr}</span>
+                                <span style={{ color: 'var(--text-primary)' }}>{game.prediction.teamA.winPct}%</span>
+                            </div>
+                            <div style={{ height: '4px', background: 'var(--bg-secondary)', borderRadius: '2px', overflow: 'hidden' }}>
+                                <div style={{ height: '100%', width: `${game.prediction.teamA.winPct}%`, background: game.prediction.teamA.winPct > game.prediction.teamB.winPct ? 'var(--accent)' : 'var(--text-muted)' }} />
+                            </div>
+                        </div>
+                        
+                        <div style={{ fontSize: '14px', fontWeight: 900, color: 'var(--text-primary)', textAlign: 'center', minWidth: '40px' }}>
+                            {game.prediction.teamA.projectedScore} - {game.prediction.teamB.projectedScore}
+                        </div>
+                        
+                        <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, marginBottom: '4px' }}>
+                                <span>{game.prediction.teamB.abbr}</span>
+                                <span style={{ color: 'var(--text-primary)' }}>{game.prediction.teamB.winPct}%</span>
+                            </div>
+                            <div style={{ height: '4px', background: 'var(--bg-secondary)', borderRadius: '2px', overflow: 'hidden' }}>
+                                <div style={{ height: '100%', width: `${game.prediction.teamB.winPct}%`, background: game.prediction.teamB.winPct > game.prediction.teamA.winPct ? 'var(--accent-red, #ef4444)' : 'var(--text-muted)' }} />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {game.prediction.spread && (
+                        <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '2px', fontStyle: 'italic', fontWeight: 500 }}>
+                            Spread: {game.prediction.teamA.winPct > game.prediction.teamB.winPct ? game.prediction.teamA.abbr : game.prediction.teamB.abbr} -{game.prediction.spread}
+                        </div>
+                    )}
+                </div>
+            )}
+
             {isLive && game.situation && (
                 <div className="game-footer" style={{ alignItems: 'flex-start', flexDirection: 'column', gap: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
