@@ -266,6 +266,53 @@ export default function GameDetailPage({ gameId, onBack }) {
                                 </div>
                             </div>
                         )}
+
+                        {/* Player Prop Picks */}
+                        {game.playerProps && (game.playerProps.modelProps?.length > 0 || game.playerProps.espnProps?.length > 0) && (
+                            <div className="card" style={{ marginTop: '24px', padding: '20px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '12px', textAlign: 'left' }}>
+                                <h4 style={{ margin: '0 0 16px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--accent-green, #10b981)', fontWeight: 800, borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    🎯 Player Prop Picks
+                                </h4>
+                                
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {(game.playerProps.modelProps || []).map((prop, i) => (
+                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: 'var(--bg-secondary)', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                                            {prop.headshot && (
+                                                <img src={prop.headshot} alt="" style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }} onError={e => e.target.style.display='none'} />
+                                            )}
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>{prop.name} <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>({prop.team})</span></div>
+                                                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>{prop.category}</div>
+                                            </div>
+                                            <div style={{ textAlign: 'center', minWidth: '50px' }}>
+                                                <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)' }}>{prop.modelLine}</div>
+                                                <div style={{ fontSize: '10px', fontWeight: 800, color: prop.modelPick === 'Over' ? 'var(--accent-green, #10b981)' : 'var(--accent-red, #ef4444)', textTransform: 'uppercase' }}>{prop.modelPick}</div>
+                                            </div>
+                                            <div style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, background: prop.confidence === 'High' ? 'rgba(16,185,129,0.12)' : prop.confidence === 'Med' ? 'rgba(99,102,241,0.1)' : 'rgba(239,68,68,0.08)', color: prop.confidence === 'High' ? 'var(--accent-green, #10b981)' : prop.confidence === 'Med' ? 'var(--accent)' : 'var(--text-muted)' }}>
+                                                {prop.confidence}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {game.playerProps.espnProps?.length > 0 && (
+                                    <div style={{ marginTop: '16px', borderTop: '1px solid var(--border-color)', paddingTop: '12px' }}>
+                                        <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>DraftKings Lines</div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '8px' }}>
+                                            {game.playerProps.espnProps.slice(0, 8).map((prop, i) => (
+                                                <div key={i} style={{ padding: '8px 10px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '11px' }}>
+                                                    <div style={{ fontWeight: 700, marginBottom: '3px' }}>{prop.name}</div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
+                                                        <span>{prop.category}</span>
+                                                        <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{prop.line}</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
 
