@@ -7,8 +7,11 @@ export default function PlayersPage({ onPlayerClick }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [search, setSearch] = useState('');
+    const [globalResults, setGlobalResults] = useState([]);
+    const [isSearchingGlobal, setIsSearchingGlobal] = useState(false);
     const [posFilter, setPosFilter] = useState('All');
     const timerRef = useRef(null);
+    const searchTimeoutRef = useRef(null);
 
     const fetchPlayers = async () => {
         try {
@@ -26,9 +29,35 @@ export default function PlayersPage({ onPlayerClick }) {
 
     useEffect(() => {
         fetchPlayers();
-        timerRef.current = setInterval(fetchPlayers, 10000); // refresh every 10 sec
+        timerRef.current = setInterval(fetchPlayers, 60000); // refresh every 60 sec to save limit
         return () => clearInterval(timerRef.current);
     }, []);
+
+    // Global Search Effect
+    useEffect(() => {
+        if (!search || search.length < 2) {
+            setGlobalResults([]);
+            setIsSearchingGlobal(false);
+            return;
+        }
+
+        setIsSearchingGlobal(true);
+        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+
+        searchTimeoutRef.current = setTimeout(async () => {
+            try {
+                const res = await fetch(`/api/search?q=${encodeURIComponent(search)}`);
+                const json = await res.json();
+                setGlobalResults(json.results || []);
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setIsSearchingGlobal(false);
+            }
+        }, 400);
+
+        return () => clearTimeout(searchTimeoutRef.current);
+    }, [search]);
 
     const formatLastUpdated = (isoString) => {
         if (!isoString) return 'Never';
@@ -96,25 +125,71 @@ export default function PlayersPage({ onPlayerClick }) {
                     <span className="search-icon">🔍</span>
                     <input
                         className="search-input"
-                        placeholder="Search players..."
+                        placeholder="Search ANY player by name..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
                 </div>
-                <div className="filter-group">
-                    {positionGroups.map(pg => (
-                        <button
-                            key={pg}
-                            className={`filter-btn ${posFilter === pg ? 'active' : ''}`}
-                            onClick={() => setPosFilter(pg)}
-                        >
-                            {pg}
-                        </button>
-                    ))}
-                </div>
+                {!search && (
+                    <div className="filter-group">
+                        {positionGroups.map(pg => (
+                            <button
+                                key={pg}
+                                className={`filter-btn ${posFilter === pg ? 'active' : ''}`}
+                                onClick={() => setPosFilter(pg)}
+                            >
+                                {pg}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
-            {players.length === 0 ? (
+            {search && search.length >= 2 ? (
+                <div className="players-table-wrap">
+                    <h3 style={{ margin: '16px 20px', fontSize: '14px', color: 'var(--text-muted)' }}>
+                        {isSearchingGlobal ? 'Searching Global MLB...' : 'Global Search Results'}
+                    </h3>
+                    {globalResults.length === 0 && !isSearchingGlobal ? (
+                        <div className="empty-state">
+                            <div className="empty-icon"></div>
+                            <h3>No Players Found globally matching "{search}"</h3>
+                        </div>
+                    ) : (
+                        <table className="rankings-table players-table">
+                            <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    <th>Pos</th>
+                                    <th>Team</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {globalResults.map((p, idx) => (
+                                    <tr key={p.id} className="team-row player-row-clickable" onClick={() => onPlayerClick && onPlayerClick(p.id)}>
+                                        <td>
+                                            <div className="player-cell">
+                                                <img
+                                                    src={p.headshot}
+                                                    alt={p.name}
+                                                    className="player-headshot"
+                                                    onError={(e) => { e.target.src = `https://a.espncdn.com/i/headshots/nophoto.png`; }}
+                                                />
+                                                <div className="player-info">
+                                                    <span className="player-name">{p.name}</span>
+                                                    <span className="player-meta">#{p.jersey}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span className="pos-badge">{p.position}</span></td>
+                                        <td>{p.teamName}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+            ) : players.length === 0 ? (
                 <div className="empty-state">
                     <div className="empty-icon"></div>
                     <h3>No Players Found</h3>
@@ -122,6 +197,7 @@ export default function PlayersPage({ onPlayerClick }) {
                 </div>
             ) : (
                 <div className="players-table-wrap">
+                    <h3 style={{ margin: '16px 20px', fontSize: '14px', color: 'var(--text-muted)' }}>Top Rated Players</h3>
                     <table className="rankings-table players-table">
                         <thead>
                             <tr>

@@ -94,42 +94,79 @@ export async function GET(request, { params }) {
                 const mlbId = searchRes?.people?.[0]?.id;
 
                 if (mlbId) {
-                    const mlbStats = await fetchJSON(`https://statsapi.mlb.com/api/v1/people/${mlbId}/stats?stats=career&group=hitting,pitching`);
+                    const mlbStats = await fetchJSON(`https://statsapi.mlb.com/api/v1/people/${mlbId}/stats?stats=career,season&group=hitting,pitching`);
                     const statBlocks = mlbStats?.stats || [];
 
                     for (const block of statBlocks) {
                         const isPitchBlock = block.group?.displayName === 'pitching';
+                        const isCareer = block.type?.displayName === 'career';
+                        const isSeason = block.type?.displayName === 'season';
                         const raw = block.splits?.[0]?.stat || {};
 
-                        if (isPitchBlock) {
-                            careerPitching = {
-                                ...careerPitching,
-                                ERA: parseFloat(raw.era) || 0,
-                                IP: parseFloat(raw.inningsPitched) || 0,
-                                K: parseFloat(raw.strikeOuts) || 0,
-                                WHIP: parseFloat(raw.whip) || 0,
-                                wins: parseInt(raw.wins) || 0,
-                                losses: parseInt(raw.losses) || 0,
-                                walks: parseInt(raw.baseOnBalls) || 0,
-                            };
-                            if (isPitcher) careerStats = careerPitching;
-                        } else {
-                            careerBatting = {
-                                ...careerBatting,
-                                AVG: parseFloat(raw.avg) || 0,
-                                SLG: parseFloat(raw.slg) || 0,
-                                OBP: parseFloat(raw.obp) || 0,
-                                OPS: parseFloat(raw.ops) || 0,
-                                HR: parseInt(raw.homeRuns) || 0,
-                                GP: parseInt(raw.gamesPlayed) || 0,
-                                RBIs: parseInt(raw.rbi) || 0,
-                                hits: parseInt(raw.hits) || 0,
-                                runs: parseInt(raw.runs) || 0,
-                                walks: parseInt(raw.baseOnBalls) || 0,
-                                stolenBases: parseInt(raw.stolenBases) || 0,
-                                strikeouts: parseInt(raw.strikeOuts) || 0,
-                            };
-                            if (!isPitcher) careerStats = careerBatting;
+                        if (isCareer) {
+                            if (isPitchBlock) {
+                                careerPitching = {
+                                    ...careerPitching,
+                                    ERA: parseFloat(raw.era) || 0,
+                                    IP: parseFloat(raw.inningsPitched) || 0,
+                                    K: parseFloat(raw.strikeOuts) || 0,
+                                    WHIP: parseFloat(raw.whip) || 0,
+                                    wins: parseInt(raw.wins) || 0,
+                                    losses: parseInt(raw.losses) || 0,
+                                    walks: parseInt(raw.baseOnBalls) || 0,
+                                };
+                                if (isPitcher) careerStats = careerPitching;
+                            } else {
+                                careerBatting = {
+                                    ...careerBatting,
+                                    AVG: parseFloat(raw.avg) || 0,
+                                    SLG: parseFloat(raw.slg) || 0,
+                                    OBP: parseFloat(raw.obp) || 0,
+                                    OPS: parseFloat(raw.ops) || 0,
+                                    HR: parseInt(raw.homeRuns) || 0,
+                                    GP: parseInt(raw.gamesPlayed) || 0,
+                                    RBIs: parseInt(raw.rbi) || 0,
+                                    hits: parseInt(raw.hits) || 0,
+                                    runs: parseInt(raw.runs) || 0,
+                                    walks: parseInt(raw.baseOnBalls) || 0,
+                                    stolenBases: parseInt(raw.stolenBases) || 0,
+                                    strikeouts: parseInt(raw.strikeOuts) || 0,
+                                };
+                                if (!isPitcher) careerStats = careerBatting;
+                            }
+                        }
+
+                        if (isSeason) {
+                            if (isPitchBlock && Object.keys(pitchingStats).length < 3) {
+                                pitchingStats = {
+                                    ...pitchingStats,
+                                    ERA: parseFloat(raw.era) || 0,
+                                    IP: parseFloat(raw.inningsPitched) || 0,
+                                    K: parseFloat(raw.strikeOuts) || 0,
+                                    WHIP: parseFloat(raw.whip) || 0,
+                                    wins: parseInt(raw.wins) || 0,
+                                    losses: parseInt(raw.losses) || 0,
+                                    walks: parseInt(raw.baseOnBalls) || 0,
+                                };
+                                if (isPitcher) currentSeasonStats = pitchingStats;
+                            } else if (!isPitchBlock && Object.keys(battingStats).length < 3) {
+                                battingStats = {
+                                    ...battingStats,
+                                    AVG: parseFloat(raw.avg) || 0,
+                                    SLG: parseFloat(raw.slg) || 0,
+                                    OBP: parseFloat(raw.obp) || 0,
+                                    OPS: parseFloat(raw.ops) || 0,
+                                    HR: parseInt(raw.homeRuns) || 0,
+                                    GP: parseInt(raw.gamesPlayed) || 0,
+                                    RBIs: parseInt(raw.rbi) || 0,
+                                    hits: parseInt(raw.hits) || 0,
+                                    runs: parseInt(raw.runs) || 0,
+                                    walks: parseInt(raw.baseOnBalls) || 0,
+                                    stolenBases: parseInt(raw.stolenBases) || 0,
+                                    strikeouts: parseInt(raw.strikeOuts) || 0,
+                                };
+                                if (!isPitcher || isTwoWay) currentSeasonStats = battingStats;
+                            }
                         }
                     }
                 }
