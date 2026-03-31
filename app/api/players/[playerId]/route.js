@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import { fetchPlayerStats, fetchPlayerGameLogs } from '@/lib/espn';
+import { fetchPlayerStats, fetchPlayerGameLogs, fetchScoreboard } from '@/lib/espn';
 import { computePlayerRating } from '@/lib/players';
 import { cacheGet, cacheSet } from '@/lib/cache';
 import { generatePlayerAnalysis } from '@/lib/ai';
 import { getPlayerAccolades } from '@/lib/accolades';
+import { computeRankings } from '@/lib/rankings';
 
 export async function GET(request, { params }) {
     const { playerId } = await params;
@@ -164,21 +165,69 @@ export async function GET(request, { params }) {
             expectedStats = computeExpected(isPitcher, currentSeasonStats);
         }
 
-        const result = {
+                // Get team games played for accurate projections
+                let teamGP = 0;
+                let nextOpponent = null;
+                try {
+                    const rankData = await computeRankings();
+                    const teamAbbr = playerData.teamAbbr;
+                    const teamRank = (rankData.rankings || []).find(t => t.abbr === teamAbbr);
+                    if (teamRank) {
+                        teamGP = teamRank.gamesPlayed || 0;
+                    }
+                    // Find next game for this team from scoreboard
+                    const scoreboard = await fetchScoreboard();
+                    if (scoreboard?.games) {
+                        const teamGame = scoreboard.games.find(g => 
+                            g.state === 'pre' && (
+                                g.home?.abbr === teamAbbr || g.away?.abbr === teamAbbr
+                            )
+                        );
+                        if (teamGame) {
+                            const isHome = teamGame.home?.abbr === teamAbbr;
+                            const opp = isHome ? teamGame.away : teamGame.home;
+                            const oppRank = (rankData.rankings || []).find(t => t.abbr === opp?.abbr);
+                            nextOpponent = {
+                                abbr: opp?.abbr,
+                                name: opp?.name,
+                                logo: opp?.logo,
+                                isHome,
+                                startTime: teamGame.startTime,
+                                oppRPG: oppRank?.rpg || 4.4,
+                                oppERA: oppRank?.teamERA || 4.20,
+                                oppOVR: oppRank?.ovrScore || 50,
+                                oppRank: oppRank?.ovrRank || 15,
+                            };
+                        }
+                    }
+                } catch (e) { /* Rankings may fail early season */ }
+
+                // Generate player props for the next game
+                let playerProps = null;
+                if (nextOpponent) {
+                    playerProps = generatePlayerProps(playerData, currentSeasonStats, careerStats, battingStats, pitchingStats, nextOpponent, isPitcher, isTwoWay);
+                }
+
+                const aiAnalysis = generatePlayerAnalysis(playerData, isTwoWay ? (isPitcher ? pitchingStats : battingStats) : currentSeasonStats, careerStats, gameLogRes?.logs || [], playerData.statusLabel, battingStats, pitchingStats, getPlayerAccolades(playerId).narrativeText, teamGP);
+
+                const result = {
             player: {
                 ...playerData,
                 isTwoWay,
                 ratingType: ratingData.type,
-                currentStats: currentSeasonStats, // compat
+                currentStats: currentSeasonStats,
                 battingStats,
                 pitchingStats,
-                careerStats, // compat
+                careerStats,
                 careerBatting,
                 careerPitching,
                 expectedStats,
                 expectedBatting,
                 expectedPitching,
-                aiAnalysis: generatePlayerAnalysis(playerData, isTwoWay ? (isPitcher ? pitchingStats : battingStats) : currentSeasonStats, careerStats, gameLogRes?.logs || [], playerData.statusLabel, battingStats, pitchingStats, getPlayerAccolades(playerId).narrativeText),
+                aiAnalysis,
+                teamGamesPlayed: teamGP,
+                nextOpponent,
+                playerProps,
             },
         };
 
@@ -266,4 +315,94 @@ function computeWAR(isPitcher, s) {
     const battingWAR = runsAboveAvg * (gp / 150);
     const baselineWAR = (gp / 150) * 1.5; // Replacement level baseline
     return rd(Math.max(-2, battingWAR + baselineWAR), 1);
+}
+
+/**
+ * Generate per-game player prop predictions based on stats, career, and opponent
+ */
+function generatePlayerProps(player, currentStats, careerStats, bStats, pStats, nextOpp, isPitcher, isTwoWay) {
+    const g = (obj, ...keys) => { for (const k of keys) if (obj?.[k]) return parseFloat(obj[k]) || 0; return 0; };
+    const gp = g(currentStats, 'GP', 'gamesPlayed') || 1;
+    const carGP = g(careerStats, 'GP', 'gamesPlayed') || 1;
+
+    const props = [];
+
+    if (isPitcher || isTwoWay) {
+        // Pitcher props: K, IP, Runs Allowed
+        const curK = g(pStats, 'strikeouts', 'SO', 'K');
+        const curIP = g(pStats, 'innings', 'IP', 'inningsPitched');
+        const curERA = g(pStats, 'ERA', 'earnedRunAverage');
+        const carK9 = g(careerStats, 'K/9', 'strikeoutsPerNineInnings') || 8.5;
+        const carERA = g(careerStats, 'ERA', 'earnedRunAverage') || 4.20;
+        const kPerStart = curIP > 0 ? (curK / curIP) * 6 : carK9 * 6 / 9;
+        const ipPerStart = gp > 0 ? curIP / gp : 5.5;
+        
+        // Opponent quality factor (weaker offense = more K, better for pitcher)
+        const oppFactor = nextOpp.oppRPG > 0 ? 4.4 / nextOpp.oppRPG : 1.0;
+        
+        const projK = Math.max(2, Math.round((kPerStart * 0.6 + carK9 * 6 / 9 * 0.4) * Math.min(1.15, oppFactor) * 2) / 2);
+        const projIP = Math.round(Math.min(8, ipPerStart * 0.7 + 5.5 * 0.3) * 2) / 2;
+        const blendedERA = curERA > 0 ? curERA * 0.4 + carERA * 0.6 : carERA;
+        const projRunsAllowed = Math.max(0.5, Math.round((blendedERA / 9 * projIP) / nextOpp.oppRPG * 4.4 * 2) / 2);
+
+        // Score each prop by confidence (lower variance = higher confidence)
+        const kConfidence = curIP > 10 ? 0.8 : curIP > 5 ? 0.6 : 0.4;
+        const ipConfidence = gp > 2 ? 0.7 : 0.4;
+        const raConfidence = curIP > 10 ? 0.65 : 0.35;
+
+        props.push({ category: 'Strikeouts', line: projK, confidence: kConfidence, direction: projK >= 5.5 ? 'Over' : 'Under', unit: 'K' });
+        props.push({ category: 'Innings Pitched', line: projIP, confidence: ipConfidence, direction: projIP >= 5.5 ? 'Over' : 'Under', unit: 'IP' });
+        props.push({ category: 'Runs Allowed', line: projRunsAllowed, confidence: raConfidence, direction: projRunsAllowed <= 2.5 ? 'Under' : 'Over', unit: 'RA' });
+    }
+
+    if (!isPitcher || isTwoWay) {
+        // Batter props: HR, RBI, Hits, Total Bases, Runs
+        const curHR = g(bStats, 'HR', 'homeRuns');
+        const curRBI = g(bStats, 'RBI', 'RBIs');
+        const curH = g(bStats, 'H', 'hits');
+        const curAB = g(bStats, 'AB', 'atBats') || 1;
+        const curAVG = g(bStats, 'AVG', 'avg') || curH / curAB;
+        const curSLG = g(bStats, 'SLG', 'slugAvg') || 0;
+        const carHR = g(careerStats, 'HR', 'homeRuns');
+        const carAVG = g(careerStats, 'AVG', 'avg') || 0.248;
+        const carSLG = g(careerStats, 'SLG', 'slugAvg') || 0.400;
+        
+        const hrRate = curHR / Math.max(1, gp);
+        const carHRRate = carHR / Math.max(1, carGP);
+        const blendedHRRate = hrRate * 0.4 + carHRRate * 0.6;
+        
+        // Opponent pitching factor (worse ERA = more offense)
+        const oppPitchFactor = nextOpp.oppERA > 0 ? nextOpp.oppERA / 4.20 : 1.0;
+        
+        const projHR = Math.round(blendedHRRate * oppPitchFactor * 10) / 10;
+        const blendedAVG = curAVG > 0 ? curAVG * 0.4 + carAVG * 0.6 : carAVG;
+        const projHits = Math.round(blendedAVG * 4 * oppPitchFactor * 2) / 2; // ~4 AB per game
+        const blendedSLG = curSLG > 0 ? curSLG * 0.4 + carSLG * 0.6 : carSLG;
+        const projTB = Math.round(blendedSLG * 4 * oppPitchFactor * 2) / 2;
+        const rbiRate = curRBI / Math.max(1, gp);
+        const projRBI = Math.round(rbiRate * oppPitchFactor * 2) / 2 || 0.5;
+
+        const hrConfidence = gp > 5 ? 0.5 : 0.3; // HRs are inherently volatile
+        const hitsConfidence = gp > 3 ? 0.7 : 0.45;
+        const tbConfidence = gp > 3 ? 0.65 : 0.4;
+        const rbiConfidence = gp > 5 ? 0.55 : 0.3;
+
+        props.push({ category: 'Home Runs', line: projHR > 0.3 ? 0.5 : 0.5, confidence: hrConfidence, direction: projHR > 0.3 ? 'Over' : 'Under', unit: 'HR', rawRate: projHR });
+        props.push({ category: 'Hits', line: projHits || 1.5, confidence: hitsConfidence, direction: projHits >= 1.5 ? 'Over' : 'Under', unit: 'H' });
+        props.push({ category: 'Total Bases', line: projTB || 1.5, confidence: tbConfidence, direction: projTB >= 1.5 ? 'Over' : 'Under', unit: 'TB' });
+        props.push({ category: 'RBI', line: projRBI || 0.5, confidence: rbiConfidence, direction: projRBI >= 0.8 ? 'Over' : 'Under', unit: 'RBI' });
+    }
+
+    // Sort by confidence to pick the best prop
+    props.sort((a, b) => b.confidence - a.confidence);
+    const bestProp = props[0] || null;
+
+    return {
+        opponent: { abbr: nextOpp.abbr, name: nextOpp.name, logo: nextOpp.logo, isHome: nextOpp.isHome, startTime: nextOpp.startTime },
+        oppRank: nextOpp.oppRank,
+        oppERA: nextOpp.oppERA,
+        oppRPG: nextOpp.oppRPG,
+        bestProp,
+        allProps: props.slice(0, 4), // Top 4 props
+    };
 }

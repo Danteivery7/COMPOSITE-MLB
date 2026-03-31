@@ -43,6 +43,8 @@ export async function GET(request, { params }) {
             const isPre = competitions.season?.type === 1 || isStale;
 
             return {
+                id: t.id,
+                espnId: parseInt(t.id) || 0,
                 name: t.displayName || t.shortDisplayName || t.name,
                 abbr: t.abbreviation,
                 logo: t.logos?.[0]?.href || `https://a.espncdn.com/i/teamlogos/mlb/500/scoreboard/${t.abbreviation?.toLowerCase()}.png`,
@@ -261,11 +263,25 @@ export async function GET(request, { params }) {
             console.error('Scoreboard sync error:', e);
         }
 
+        // Extract ESPN betting odds if available
+        const oddsData = summary.pickcenter || summary.odds || [];
+        if (oddsData.length > 0) {
+            const primaryOdds = oddsData[0];
+            result.game.odds = {
+                provider: primaryOdds.provider?.name || 'ESPN BET',
+                spread: primaryOdds.spread || 0,
+                overUnder: primaryOdds.overUnder || 0,
+                awayMoneyLine: primaryOdds.awayTeamOdds?.moneyLine || null,
+                homeMoneyLine: primaryOdds.homeTeamOdds?.moneyLine || null,
+                awaySpreadOdds: primaryOdds.awayTeamOdds?.spreadOdds || null,
+                homeSpreadOdds: primaryOdds.homeTeamOdds?.spreadOdds || null,
+            };
+        }
+
         // If the game hasn't started, run a live Monte Carlo Prediction
-        if (result.game.state === 'pre' && result.game.away?.id && result.game.home?.id) {
+        if (result.game.state === 'pre' && result.game.away?.espnId && result.game.home?.espnId) {
             try {
-                // Ensure IDs match ranking IDs, neutralSite false by default
-                const prediction = await predict(String(result.game.away.id), String(result.game.home.id), { neutralSite: false });
+                const prediction = await predict(String(result.game.away.espnId), String(result.game.home.espnId), { neutralSite: false });
                 result.game.prediction = prediction;
             } catch (err) {
                 console.error('API pre-game prediction error:', err.message);

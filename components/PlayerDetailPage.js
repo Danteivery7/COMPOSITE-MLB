@@ -88,6 +88,43 @@ export default function PlayerDetailPage({ playerId, onBack }) {
                     </div>
                 )}
 
+                {/* Next Game Props */}
+                {p.playerProps && (
+                    <div className="card" style={{ marginBottom: '24px', borderLeft: '4px solid var(--accent-green, #10b981)', padding: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '20px' }}>🎯</span>
+                                <h3 style={{ margin: 0, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent-green, #10b981)' }}>Next Game Props</h3>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                {p.playerProps.opponent?.logo && <img src={p.playerProps.opponent.logo} alt="" style={{ width: '20px', height: '20px' }} onError={e => e.target.style.display='none'} />}
+                                <span style={{ fontWeight: 700 }}>{p.playerProps.opponent?.isHome ? 'vs' : '@'} {p.playerProps.opponent?.abbr}</span>
+                                <span style={{ color: 'var(--text-muted)' }}>· Opp Rank #{p.playerProps.oppRank}</span>
+                            </div>
+                        </div>
+                        
+                        {p.playerProps.bestProp && (
+                            <div style={{ padding: '14px 18px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '10px', marginBottom: '16px', border: '1px solid rgba(16, 185, 129, 0.15)' }}>
+                                <div style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 800, color: 'var(--accent-green, #10b981)', letterSpacing: '1px', marginBottom: '6px' }}>Best Pick</div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '16px', fontWeight: 800 }}>{p.playerProps.bestProp.direction} {p.playerProps.bestProp.line} {p.playerProps.bestProp.category}</span>
+                                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-green, #10b981)', padding: '4px 8px', background: 'rgba(16, 185, 129, 0.12)', borderRadius: '4px' }}>{Math.round(p.playerProps.bestProp.confidence * 100)}% Conf</span>
+                                </div>
+                            </div>
+                        )}
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
+                            {(p.playerProps.allProps || []).map((prop, i) => (
+                                <div key={i} style={{ padding: '12px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px', marginBottom: '6px' }}>{prop.category}</div>
+                                    <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '4px' }}>{prop.line}</div>
+                                    <div style={{ fontSize: '11px', fontWeight: 700, color: prop.direction === 'Over' ? 'var(--accent-green, #10b981)' : 'var(--accent-red, #ef4444)' }}>{prop.direction}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Current Season Stats (determines OVR) */}
                 {p.isTwoWay ? (
                     <>

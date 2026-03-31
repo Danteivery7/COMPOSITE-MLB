@@ -216,6 +216,56 @@ export default function GameDetailPage({ gameId, onBack }) {
                                 )}
                             </div>
                         )}
+
+                        {/* ESPN Odds vs Our Model Comparison */}
+                        {game.odds && game.prediction && (
+                            <div className="card" style={{ marginTop: '24px', padding: '20px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '12px', textAlign: 'left' }}>
+                                <h4 style={{ margin: '0 0 16px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--text-muted)', fontWeight: 800, borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
+                                    Odds Comparison
+                                </h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '12px', alignItems: 'center' }}>
+                                    {/* Away team column */}
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontWeight: 800, fontSize: '14px', marginBottom: '8px' }}>{game.away?.abbr}</div>
+                                        {game.odds.awayMoneyLine != null && (
+                                            <div style={{ padding: '6px 10px', background: 'var(--bg-secondary)', borderRadius: '6px', marginBottom: '6px' }}>
+                                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>{game.odds.provider}</div>
+                                                <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)' }}>{game.odds.awayMoneyLine > 0 ? '+' : ''}{game.odds.awayMoneyLine}</div>
+                                            </div>
+                                        )}
+                                        <div style={{ padding: '6px 10px', background: 'rgba(99,102,241,0.08)', borderRadius: '6px', border: '1px solid rgba(99,102,241,0.15)' }}>
+                                            <div style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: 700, textTransform: 'uppercase' }}>Our Model</div>
+                                            <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)' }}>{game.prediction.teamA.winPct}%</div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Center divider */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                                        {game.odds.overUnder > 0 && (
+                                            <div style={{ padding: '6px 12px', background: 'var(--bg-secondary)', borderRadius: '6px', textAlign: 'center' }}>
+                                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700 }}>O/U</div>
+                                                <div style={{ fontSize: '14px', fontWeight: 800 }}>{game.odds.overUnder}</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Home team column */}
+                                    <div style={{ textAlign: 'center' }}>
+                                        <div style={{ fontWeight: 800, fontSize: '14px', marginBottom: '8px' }}>{game.home?.abbr}</div>
+                                        {game.odds.homeMoneyLine != null && (
+                                            <div style={{ padding: '6px 10px', background: 'var(--bg-secondary)', borderRadius: '6px', marginBottom: '6px' }}>
+                                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>{game.odds.provider}</div>
+                                                <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)' }}>{game.odds.homeMoneyLine > 0 ? '+' : ''}{game.odds.homeMoneyLine}</div>
+                                            </div>
+                                        )}
+                                        <div style={{ padding: '6px 10px', background: 'rgba(99,102,241,0.08)', borderRadius: '6px', border: '1px solid rgba(99,102,241,0.15)' }}>
+                                            <div style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: 700, textTransform: 'uppercase' }}>Our Model</div>
+                                            <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)' }}>{game.prediction.teamB.winPct}%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 

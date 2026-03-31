@@ -12,9 +12,9 @@ export async function GET() {
         if (data && data.games) {
             const predictions = await Promise.all(
                 data.games.map(async (game) => {
-                    if (game.state === 'pre' && game.away?.id && game.home?.id) {
+                    if (game.state === 'pre' && game.away?.teamId && game.home?.teamId) {
                         try {
-                            const prediction = await predict(String(game.away.id), String(game.home.id), { neutralSite: false });
+                            const prediction = await predict(game.away.teamId, game.home.teamId, { neutralSite: false });
                             return { id: game.id, prediction };
                         } catch (err) {
                             return null;
