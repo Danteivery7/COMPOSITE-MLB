@@ -17,10 +17,20 @@ function getGameStatus(game) {
     const minsUntil = start ? (start - now) / 60000 : null;
 
     if (game.state === 'post') {
+        const nowDate = new Date();
+        const currentHour = nowDate.getHours();
+        const isPast10AM = currentHour >= 10;
+        
         // Approximate game-end time: start + 3.5 h  (typical MLB game length)
         const estimatedEnd = start ? start + 3.5 * 3600000 : now;
         const hoursSinceEnd = (now - estimatedEnd) / 3600000;
-        if (hoursSinceEnd >= 12) {
+        
+        // Threshold to distinguish "old" games from "today's" games (4 AM ET)
+        const today4AM = new Date(nowDate);
+        today4AM.setHours(4, 0, 0, 0);
+        const isOldGame = start && start < today4AM.getTime();
+
+        if (hoursSinceEnd >= 12 || (isPast10AM && isOldGame)) {
             return { type: 'expired', label: 'Final', hide: true };
         }
         return { type: 'final', label: 'Final', cssClass: 'final' };
