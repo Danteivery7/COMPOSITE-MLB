@@ -90,16 +90,19 @@ export default function PlayerDetailPage({ playerId, onBack }) {
 
                 {/* Next Game Props */}
                 {p.playerProps && (
-                    <div className="card" style={{ marginBottom: '24px', borderLeft: '4px solid var(--accent-green, #10b981)', padding: '20px' }}>
+                    <div className="card" style={{ marginBottom: '24px', borderLeft: `4px solid ${p.playerProps.lineupStatus === 'not-in-lineup' ? 'var(--accent-red, #ef4444)' : 'var(--accent-green, #10b981)'}`, padding: '20px', position: 'relative' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span style={{ fontSize: '20px' }}>🎯</span>
                                 <h3 style={{ margin: 0, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent-green, #10b981)' }}>Next Game Props</h3>
+                                {p.playerProps.lineupStatus === 'in-lineup' && <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'rgba(16,185,129,0.12)', color: 'var(--accent-green, #10b981)' }}>IN LINEUP ✓</span>}
+                                {p.playerProps.lineupStatus === 'not-in-lineup' && <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'rgba(239,68,68,0.12)', color: 'var(--accent-red, #ef4444)' }}>NOT IN LINEUP</span>}
+                                {p.playerProps.lineupStatus === 'game-active' && <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'rgba(99,102,241,0.12)', color: 'var(--accent)' }}>GAME ACTIVE</span>}
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
                                 {p.playerProps.opponent?.logo && <img src={p.playerProps.opponent.logo} alt="" style={{ width: '20px', height: '20px' }} onError={e => e.target.style.display='none'} />}
                                 <span style={{ fontWeight: 700 }}>{p.playerProps.opponent?.isHome ? 'vs' : '@'} {p.playerProps.opponent?.abbr}</span>
-                                <span style={{ color: 'var(--text-muted)' }}>· Opp Rank #{p.playerProps.oppRank}</span>
+                                <span style={{ color: 'var(--text-muted)' }}>· #{p.playerProps.oppRank}</span>
                             </div>
                         </div>
                         

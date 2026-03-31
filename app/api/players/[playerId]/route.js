@@ -204,8 +204,34 @@ export async function GET(request, { params }) {
 
                 // Generate player props for the next game
                 let playerProps = null;
+                let lineupStatus = 'unknown';
                 if (nextOpponent) {
+                    // Check if player is in today's lineup by looking at the game
+                    try {
+                        const scoreboard = await fetchScoreboard();
+                        const teamAbbr = playerData.teamAbbr;
+                        const teamGame = (scoreboard?.games || []).find(g => 
+                            g.home?.abbr === teamAbbr || g.away?.abbr === teamAbbr
+                        );
+                        if (teamGame && teamGame.id) {
+                            const gameSummary = await fetchJSON(`https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/summary?event=${teamGame.id}`);
+                            const rosters = gameSummary?.rosters || gameSummary?.boxscore?.players || [];
+                            const allAthletes = rosters.flatMap(r => 
+                                (r.roster || r.statistics || []).flatMap(s => 
+                                    (s.athletes || []).map(a => String(a.athlete?.id || a.id || ''))
+                                )
+                            );
+                            if (allAthletes.length > 0) {
+                                lineupStatus = allAthletes.includes(String(playerId)) ? 'in-lineup' : 'not-in-lineup';
+                            }
+                            if (teamGame.state === 'in' || teamGame.state === 'post') {
+                                lineupStatus = 'game-active';
+                            }
+                        }
+                    } catch (e) { /* Lineup check failed, show props anyway */ }
+
                     playerProps = generatePlayerProps(playerData, currentSeasonStats, careerStats, battingStats, pitchingStats, nextOpponent, isPitcher, isTwoWay);
+                    playerProps.lineupStatus = lineupStatus;
                 }
 
                 const aiAnalysis = generatePlayerAnalysis(playerData, isTwoWay ? (isPitcher ? pitchingStats : battingStats) : currentSeasonStats, careerStats, gameLogRes?.logs || [], playerData.statusLabel, battingStats, pitchingStats, getPlayerAccolades(playerId).narrativeText, teamGP);

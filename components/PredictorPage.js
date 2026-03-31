@@ -189,6 +189,7 @@ export default function PredictorPage() {
                                         <span className="win-pct-label">{prediction.teamA.abbr}</span>
                                     </div>
                                     <div className="win-pct-value">{prediction.teamA.winPct}%</div>
+                                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', marginTop: '2px' }}>({prediction.teamA.americanOdds > 0 ? '+' : ''}{prediction.teamA.americanOdds})</div>
                                 </div>
                                 <div className="win-pct-team">
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', marginBottom: '4px' }}>
@@ -203,6 +204,7 @@ export default function PredictorPage() {
                                         <span className="win-pct-label">{prediction.teamB.abbr}</span>
                                     </div>
                                     <div className="win-pct-value">{prediction.teamB.winPct}%</div>
+                                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', marginTop: '2px' }}>({prediction.teamB.americanOdds > 0 ? '+' : ''}{prediction.teamB.americanOdds})</div>
                                 </div>
                             </div>
 
