@@ -214,7 +214,7 @@ export async function GET(request, { params }) {
             const ath = prob.athlete || {};
             // For probables, ERA is often in comp.probables[0].statistics
             let era = null, pitK = null, pitCount = null;
-            if (prob.statistics) {
+            if (Array.isArray(prob.statistics)) {
                 const sERA = prob.statistics.find(s => s.name === 'ERA');
                 const sK = prob.statistics.find(s => s.name === 'strikeouts');
                 if (sERA) era = sERA.displayValue;
