@@ -4,11 +4,12 @@ import { computePlayerRating } from '@/lib/players';
 import { cacheGet, cacheSet } from '@/lib/cache';
 import { generatePlayerAnalysis } from '@/lib/ai';
 import { getPlayerAccolades } from '@/lib/accolades';
+import { getTeamByEspnId } from '@/lib/teams';
 import { computeRankings } from '@/lib/rankings';
 
 export async function GET(request, { params }) {
     const { playerId } = await params;
-    const cacheKey = `player_detail_v9_${playerId}`;
+    const cacheKey = `player_detail_v10_${playerId}`;
     const cached = cacheGet(cacheKey);
     if (cached) return NextResponse.json(cached);
 
@@ -33,6 +34,19 @@ export async function GET(request, { params }) {
 
         let isTwoWay = ratingData.type === 'two-way' || isRosterTwoWay;
 
+        let teamName = bio.team?.displayName || '';
+        let teamAbbr = bio.team?.abbreviation || '';
+        if (bio.team?.$ref) {
+            const teamMatch = bio.team.$ref.match(/teams\/(\d+)/);
+            if (teamMatch) {
+                const teamData = getTeamByEspnId(parseInt(teamMatch[1]));
+                if (teamData) {
+                    teamName = teamData.name;
+                    teamAbbr = teamData.abbr;
+                }
+            }
+        }
+
         const playerData = {
             id: playerId,
             name: bio.displayName || bio.fullName || 'Unknown',
@@ -42,9 +56,9 @@ export async function GET(request, { params }) {
             height: bio.displayHeight || null,
             weight: bio.displayWeight || null,
             headshot: bio.headshot?.href || `https://a.espncdn.com/i/headshots/mlb/players/full/${playerId}.png`,
-            teamName: bio.team?.displayName || '',
-            teamAbbr: bio.team?.abbreviation || '',
-            teamLogoAbbr: bio.team?.abbreviation || '',
+            teamName,
+            teamAbbr,
+            teamLogoAbbr: teamAbbr,
             batHand: bio.bats?.displayValue || null,
             throwHand: bio.throws?.displayValue || null,
             rating: ratingData?.rating || 40,
@@ -220,6 +234,17 @@ export async function GET(request, { params }) {
                         );
                         if (teamGame) {
                             const isHome = teamGame.home?.abbr === teamAbbr;
+                            const thisTeam = isHome ? teamGame.home : teamGame.away;
+                            
+                            // Parse actual team games played directly from team record (e.g. "5-2" = 7 GP)
+                            if (thisTeam?.record && thisTeam.record !== '0-0') {
+                                const parts = thisTeam.record.split('-');
+                                if (parts.length === 2) {
+                                    const recordGP = parseInt(parts[0]) + parseInt(parts[1]);
+                                    if (!isNaN(recordGP) && recordGP > teamGP) teamGP = recordGP;
+                                }
+                            }
+
                             const opp = isHome ? teamGame.away : teamGame.home;
                             const oppRank = (rankData.rankings || []).find(t => t.abbr === opp?.abbr);
                             nextOpponent = {
