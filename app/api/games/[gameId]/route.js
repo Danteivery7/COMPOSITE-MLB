@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache';
 import { fetchScoreboard } from '@/lib/espn';
+import { predict } from '@/lib/predictor';
 
 /**
  * GET /api/games/[gameId]
@@ -258,6 +259,17 @@ export async function GET(request, { params }) {
             }
         } catch (e) {
             console.error('Scoreboard sync error:', e);
+        }
+
+        // If the game hasn't started, run a live Monte Carlo Prediction
+        if (result.game.state === 'pre' && result.game.away?.id && result.game.home?.id) {
+            try {
+                // Ensure IDs match ranking IDs, neutralSite false by default
+                const prediction = await predict(String(result.game.away.id), String(result.game.home.id), { neutralSite: false });
+                result.game.prediction = prediction;
+            } catch (err) {
+                console.error('API pre-game prediction error:', err.message);
+            }
         }
 
         // Short cache for live, longer for final

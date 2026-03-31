@@ -160,6 +160,62 @@ export default function GameDetailPage({ gameId, onBack }) {
                                 {game.broadcast && <div style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 500 }}>📺 {game.broadcast}</div>}
                             </div>
                         </div>
+
+                        {/* Monte Carlo Prediction Section */}
+                        {game.prediction && (
+                            <div className="card" style={{ marginTop: '32px', padding: '24px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '12px', textAlign: 'left', boxShadow: 'var(--shadow-sm)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', flexWrap: 'wrap', gap: '12px' }}>
+                                    <h4 style={{ margin: 0, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--text-muted)', fontWeight: 800 }}>
+                                        Live App Simulation <span style={{ opacity: 0.6, fontWeight: 500, marginLeft: '6px' }}>(3,000 Sims)</span>
+                                    </h4>
+                                    <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 800, padding: '4px 10px', borderRadius: '4px', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--accent)' }}>
+                                        {game.prediction.confidence} Confidence
+                                    </span>
+                                </div>
+                                
+                                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                    <div style={{ flex: '1 1 200px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                            <span style={{ fontWeight: 800, fontSize: '15px' }}>{game.prediction.teamA.abbr}</span>
+                                            <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{game.prediction.teamA.winPct}%</span>
+                                        </div>
+                                        <div style={{ width: '100%', height: '8px', background: 'var(--bg-secondary)', borderRadius: '4px', overflow: 'hidden' }}>
+                                            <div style={{ width: `${game.prediction.teamA.winPct}%`, height: '100%', background: game.prediction.teamA.winPct > game.prediction.teamB.winPct ? 'var(--accent)' : 'var(--text-muted)' }} />
+                                        </div>
+                                    </div>
+                                    
+                                    <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '0 16px' }}>
+                                        <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 800, letterSpacing: '1px', marginBottom: '4px' }}>Projected</span>
+                                        <span style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)' }}>
+                                            {game.prediction.teamA.projectedScore} - {game.prediction.teamB.projectedScore}
+                                        </span>
+                                    </div>
+                                    
+                                    <div style={{ flex: '1 1 200px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                            <span style={{ fontWeight: 800, fontSize: '15px' }}>{game.prediction.teamB.abbr}</span>
+                                            <span style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{game.prediction.teamB.winPct}%</span>
+                                        </div>
+                                        <div style={{ width: '100%', height: '8px', background: 'var(--bg-secondary)', borderRadius: '4px', overflow: 'hidden' }}>
+                                            <div style={{ width: `${game.prediction.teamB.winPct}%`, height: '100%', background: game.prediction.teamB.winPct > game.prediction.teamA.winPct ? 'var(--accent-red, #ef4444)' : 'var(--text-muted)' }} />
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {game.prediction.spread && (
+                                    <div style={{ marginTop: '24px', fontSize: '13px', display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                        <div style={{ padding: '6px 12px', borderRadius: '6px', background: 'var(--bg-secondary)', fontWeight: 700, color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
+                                            Spread: {game.prediction.teamA.winPct > game.prediction.teamB.winPct ? game.prediction.teamA.abbr : game.prediction.teamB.abbr} -{game.prediction.spread}
+                                        </div>
+                                        {game.prediction.why && game.prediction.why[0] && (
+                                            <div style={{ fontStyle: 'italic', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 500 }}>
+                                                "{game.prediction.why[0]}"
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
 
