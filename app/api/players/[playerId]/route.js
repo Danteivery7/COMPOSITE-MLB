@@ -179,9 +179,7 @@ export async function GET(request, { params }) {
                     const scoreboard = await fetchScoreboard();
                     if (scoreboard?.games) {
                         const teamGame = scoreboard.games.find(g => 
-                            g.state === 'pre' && (
-                                g.home?.abbr === teamAbbr || g.away?.abbr === teamAbbr
-                            )
+                            g.home?.abbr === teamAbbr || g.away?.abbr === teamAbbr
                         );
                         if (teamGame) {
                             const isHome = teamGame.home?.abbr === teamAbbr;

@@ -235,7 +235,7 @@ export default function GameDetailPage({ gameId, onBack }) {
                                         )}
                                         <div style={{ padding: '6px 10px', background: 'rgba(99,102,241,0.08)', borderRadius: '6px', border: '1px solid rgba(99,102,241,0.15)' }}>
                                             <div style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: 700, textTransform: 'uppercase' }}>Our Model</div>
-                                            <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)' }}>{game.prediction.teamA.winPct}%</div>
+                                            <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)' }}>{game.prediction.teamA.americanOdds > 0 ? '+' : ''}{game.prediction.teamA.americanOdds}</div>
                                         </div>
                                     </div>
                                     
@@ -260,7 +260,7 @@ export default function GameDetailPage({ gameId, onBack }) {
                                         )}
                                         <div style={{ padding: '6px 10px', background: 'rgba(99,102,241,0.08)', borderRadius: '6px', border: '1px solid rgba(99,102,241,0.15)' }}>
                                             <div style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: 700, textTransform: 'uppercase' }}>Our Model</div>
-                                            <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)' }}>{game.prediction.teamB.winPct}%</div>
+                                            <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)' }}>{game.prediction.teamB.americanOdds > 0 ? '+' : ''}{game.prediction.teamB.americanOdds}</div>
                                         </div>
                                     </div>
                                 </div>

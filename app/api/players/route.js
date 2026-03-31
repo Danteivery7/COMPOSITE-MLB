@@ -87,6 +87,7 @@ function refreshInBackground() {
     computeTop50()
         .then(result => {
             cacheSet('top_50_players', result, CACHE_TTL.PLAYERS_TOP);
+            cacheSet('top_50_players_stale', result, 3600); // 1hr stale fallback
         })
         .catch(err => console.error('Background top-50 refresh failed:', err.message))
         .finally(() => { isRefreshing = false; });
@@ -106,9 +107,13 @@ export async function GET() {
     try {
         const result = await computeTop50();
         cacheSet('top_50_players', result, CACHE_TTL.PLAYERS_TOP);
+        cacheSet('top_50_players_stale', result, 3600);
         return Response.json(result);
     } catch (err) {
         console.error('Players API error:', err);
+        // Return stale data if available
+        const stale = cacheGet('top_50_players_stale');
+        if (stale) return Response.json({ ...stale, stale: true });
         return Response.json(
             { players: [], error: err.message, lastUpdated: new Date().toISOString() },
             { status: 200 }
