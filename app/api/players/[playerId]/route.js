@@ -420,20 +420,38 @@ function generatePlayerProps(player, currentStats, careerStats, bStats, pStats, 
         const curERA = g(pStats, 'ERA', 'earnedRunAverage');
         const carK9 = g(careerStats, 'K/9', 'strikeoutsPerNineInnings') || 8.5;
         const carERA = g(careerStats, 'ERA', 'earnedRunAverage') || 4.20;
-        const kPerStart = curIP > 0 ? (curK / curIP) * 6 : carK9 * 6 / 9;
-        const ipPerStart = gp > 0 ? curIP / gp : 5.5;
+        
+        // Find Pitching Games Played specifically, not total games (to fix two-way players)
+        const pGP = g(pStats, 'gamesPlayed', 'GP', 'G');
+        const carPGP = g(careerStats, 'gamesPlayed', 'GP', 'G');
+        const isStarter = (g(careerStats, 'gamesStarted', 'GS') / Math.max(1, carPGP)) > 0.5 || (carPGP > 0 && (g(careerStats, 'IP', 'inningsPitched') / carPGP) >= 4.0);
+        
+        const defaultIP = isStarter ? 5.5 : 1.0;
+        const defaultK = isStarter ? (carK9 * defaultIP / 9) : (carK9 * defaultIP / 9);
+
+        const ipPerApp = pGP > 0 ? curIP / pGP : defaultIP;
+        const kPerApp = pGP > 0 ? (curK / pGP) : defaultK;
         
         // Opponent quality factor (weaker offense = more K, better for pitcher)
         const oppFactor = nextOpp.oppRPG > 0 ? 4.4 / nextOpp.oppRPG : 1.0;
         
-        const projK = Math.max(2, Math.round((kPerStart * 0.6 + carK9 * 6 / 9 * 0.4) * Math.min(1.15, oppFactor) * 2) / 2);
-        const projIP = Math.round(Math.min(8, ipPerStart * 0.7 + 5.5 * 0.3) * 2) / 2;
+        const blendedK = pGP > 0 ? (kPerApp * 0.6 + defaultK * 0.4) : defaultK;
+        const blendedIP = pGP > 0 ? (ipPerApp * 0.7 + defaultIP * 0.3) : defaultIP;
+
+        let projK = Math.max(0.5, Math.round(blendedK * Math.min(1.2, oppFactor) * 2) / 2);
+        const projIP = Math.max(0.5, Math.round(Math.min(8.0, blendedIP) * 2) / 2);
+        
+        // Strict logic enforcement: Pitchers usually don't strike out more than 1.5 batters per inning (1.5 * total outs = half of all outs)
+        // If the math hallucinates 7 Ks in 1.5 Innings, cap the Ks down to a mathematically sane maximum.
+        const maxSaneKs = Math.max(1.5, Math.round(projIP * 1.5 * 2) / 2); // 1.5 Innings = Max 2.5 Ks
+        if (projK > maxSaneKs) projK = maxSaneKs;
+
         const blendedERA = curERA > 0 ? curERA * 0.4 + carERA * 0.6 : carERA;
         const projRunsAllowed = Math.max(0.5, Math.round((blendedERA / 9 * projIP) / nextOpp.oppRPG * 4.4 * 2) / 2);
 
         // Score each prop by confidence (lower variance = higher confidence)
         const kConfidence = curIP > 10 ? 0.8 : curIP > 5 ? 0.6 : 0.4;
-        const ipConfidence = gp > 2 ? 0.7 : 0.4;
+        const ipConfidence = pGP > 2 ? 0.7 : 0.4;
         const raConfidence = curIP > 10 ? 0.65 : 0.35;
 
         props.push({ category: 'Strikeouts', line: projK, confidence: kConfidence, direction: projK >= 5.5 ? 'Over' : 'Under', unit: 'K' });
