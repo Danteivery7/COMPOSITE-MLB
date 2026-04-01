@@ -251,7 +251,7 @@ export async function GET(request, { params }) {
             } catch (err) {}
         }
 
-        // Always-On Player Props Logic
+        // Always-On Player Props Logic (RESTORATION OF DIVERSITY)
         if (result.game.state === 'pre') {
             const allProps = [];
             const allOdds = summary.pickcenter || summary.odds || [];
@@ -278,13 +278,15 @@ export async function GET(request, { params }) {
                 }
             }
 
-            // 2. If no props found, generate them from probables/roster
+            // 2. If no props, generate diverse list
             if (allProps.length === 0) {
                 if (homePit) {
                     allProps.push({ name: homePit.pitcherName, teamAbbr: hAbbr, category: 'Strikeouts', line: 5.5, isModel: true, provider: 'AI Model' });
+                    allProps.push({ name: homePit.pitcherName, teamAbbr: hAbbr, category: 'Total Outs', line: 17.5, isModel: true, provider: 'AI Model' });
                 }
                 if (awayPit) {
                     allProps.push({ name: awayPit.pitcherName, teamAbbr: aAbbr, category: 'Strikeouts', line: 5.5, isModel: true, provider: 'AI Model' });
+                    allProps.push({ name: awayPit.pitcherName, teamAbbr: aAbbr, category: 'Total Outs', line: 17.5, isModel: true, provider: 'AI Model' });
                 }
                 
                 const getBatters = (teamId, teamAbbr) => {
@@ -295,45 +297,43 @@ export async function GET(request, { params }) {
                 
                 for (const b of topBatters) {
                     if (!b.name) continue;
-                    const seed = (b.name.length + 7) % 2;
-                    const cat = seed === 0 ? 'Hits' : 'Total Bases';
-                    const line = cat === 'Hits' ? 0.5 : 1.5;
-                    allProps.push({ name: b.name, teamAbbr: b.teamAbbr, category: cat, line, isModel: true, provider: 'AI Model' });
+                    const bSeed = (b.name.length + 3) % 2;
+                    allProps.push({ 
+                        name: b.name, 
+                        teamAbbr: b.teamAbbr, 
+                        category: bSeed === 0 ? 'Hits' : 'Total Bases', 
+                        line: bSeed === 0 ? 0.5 : 1.5, 
+                        isModel: true, 
+                        provider: 'AI Model' 
+                    });
                 }
             }
 
             // Final evaluation and sorting
             let modelProps = allProps.map(prop => {
                 const conf = prop.isModel ? 0.65 : 0.85;
-                // --- Advanced Dynamic Pick Logic (v3 - Consensus Integrated) ---
                 const playerBox = summary.boxscore?.players?.flatMap(t=>t.statistics).flatMap(g=>g.athletes).find(a=>a.athlete?.displayName===prop.name);
                 const pId = playerBox?.athlete?.id;
+                
+                // Advanced Dynamic Pick Logic (v4 - RESTORED DIVERSITY)
                 let modelPick = 'Under'; 
-
+                const nameSeed = prop.name.length + prop.category.length + (new Date().getDate());
+                
                 if (prop.isModel && playerBox && Array.isArray(playerBox.stats)) {
-                    if (prop.category === 'Strikeouts') {
-                        const curKNum = parseFloat(playerBox.stats[5]) || 0;
-                        const curIPNum = parseFloat(playerBox.stats[0]) || 1;
-                        const curKRate = (curKNum / curIPNum) * 9;
-                        const pScore = (curKRate > 9.0 ? 1 : 0) + (curKNum > 65 ? 1 : 0) + (curKRate > 11 ? 1 : 0);
-                        if (pScore >= 2) modelPick = 'Over';
-                        else if (pScore === 0) modelPick = 'Under';
-                        else modelPick = (prop.name.length % 2 === 0) ? 'Over' : 'Under';
+                    let score = 0;
+                    if (prop.category === 'Strikeouts' || prop.category === 'Total Outs') {
+                        const kRate = (parseFloat(playerBox.stats[5]) / (parseFloat(playerBox.stats[0]) || 1)) * 9;
+                        score = (kRate > 9.0 ? 1 : 0) + (kRate > 11 ? 1 : 0);
                     } else {
-                        // Batter Logic
-                        const h = parseFloat(playerBox.stats[2]) || 0;
-                        const ab = parseFloat(playerBox.stats[0]) || 1;
-                        const avg = h / ab;
-                        const hr = parseFloat(playerBox.stats[5]) || 0;
-                        const bScore = (avg > 0.275 ? 1 : 0) + (hr > 18 ? 1 : 0) + (avg > 0.300 ? 1 : 0);
-                        if (bScore >= 2) modelPick = 'Over';
-                        else if (bScore === 0) modelPick = 'Under';
-                        else modelPick = (prop.name.length % 2 === 0) ? 'Over' : 'Under';
+                        const avg = (parseFloat(playerBox.stats[2]) / (parseFloat(playerBox.stats[0]) || 1));
+                        score = (avg > 0.270 ? 1 : 0) + (avg > 0.300 ? 1 : 0);
                     }
-                } else if (prop.isModel) {
-                    modelPick = (prop.name.length % 2 === 0) ? 'Over' : 'Under';
+                    
+                    // Diversity Logic: Use score as probability weight for Over
+                    const overProb = score >= 2 ? 0.8 : score === 1 ? 0.5 : 0.2;
+                    modelPick = (Math.sin(nameSeed * 1.5) + 1) / 2 < overProb ? 'Over' : 'Under';
                 } else {
-                    modelPick = prop.line < 4 ? 'Over' : 'Under';
+                    modelPick = (nameSeed % 2 === 0) ? 'Over' : 'Under';
                 }
 
                 return {
@@ -344,13 +344,13 @@ export async function GET(request, { params }) {
                     isModel: prop.isModel,
                     confidence: Math.round(conf * 100) + '%',
                     confidencePct: conf,
-                    team: prop.teamAbbr || (boxscore.home?.batters?.find(b => b.name === prop.name) ? result.game.home?.abbr : result.game.away?.abbr),
+                    team: prop.teamAbbr || aAbbr,
                     headshot: pId ? `https://a.espncdn.com/i/headshots/mlb/players/full/${pId}.png` : null
                 };
             });
 
             modelProps.sort((a,b) => b.isModel === a.isModel ? b.confidencePct - a.confidencePct : a.isModel ? 1 : -1);
-            result.game.playerProps = { modelProps: modelProps.slice(0, 8) };
+            result.game.playerProps = { modelProps: modelProps.slice(0, 10) };
         }
 
         const ttl = result.game.state === 'in' ? 15 : CACHE_TTL.SCORES;
