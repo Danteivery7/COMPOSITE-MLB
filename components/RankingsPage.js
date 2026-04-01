@@ -193,7 +193,7 @@ export default function RankingsPage({ favorites, toggleFavorite, onTeamClick })
                             <th onClick={() => setSortBy('ovrRecord')} className={sortBy === 'ovrRecord' ? 'sorted' : ''}>Record</th>
                             <th onClick={() => setSortBy('runDiff')} className={sortBy === 'runDiff' ? 'sorted' : ''}>Run Diff</th>
                             <th onClick={() => setSortBy('xRecord')} className={sortBy === 'xRecord' ? 'sorted' : ''}>xRecord</th>
-                            <th>Trend</th>
+                            <th onClick={() => setSortBy('hottness')} className={sortBy === 'hottness' ? 'sorted' : ''}>Streak</th>
                             <th>Fav</th>
                         </tr>
                     </thead>
@@ -243,9 +243,9 @@ export default function RankingsPage({ favorites, toggleFavorite, onTeamClick })
                                     })()}
                                 </td>
                                 <td>
-                                    {team.trend !== 0 ? (
-                                        <span className={`trend-chip ${team.trend > 0 ? 'up' : 'down'}`}>
-                                            {team.trend > 0 ? '↑' : '↓'}{Math.abs(team.trend)}
+                                    {team.streakNum !== 0 ? (
+                                        <span className={`trend-chip ${team.streakNum > 0 ? 'up' : 'down'}`}>
+                                            {team.streak}
                                         </span>
                                     ) : (
                                         <span className="trend-chip same">—</span>
