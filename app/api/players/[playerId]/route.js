@@ -430,6 +430,9 @@ function generatePlayerProps(player, currentStats, careerStats, bStats, pStats, 
 
         kConfidence = curIP > 10 ? 0.8 : curIP > 5 ? 0.6 : 0.4;
         
+        const curKRate = curIP > 0 ? (curK / curIP) : 0;
+        const carKRate = carK9 / 9;
+        
         // --- Advanced Dynamic Pick Logic (v3) ---
         // Expose a score logic even before aiAnalysis is returned
         const pScore = (curKRate > carKRate ? 1 : 0) + (projK >= 6.5 ? 1 : 0) + (curIP / Math.max(1, pGP) > 5.5 ? 1 : 0);
