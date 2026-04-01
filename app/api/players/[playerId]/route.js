@@ -421,12 +421,13 @@ function generatePlayerProps(player, currentStats, careerStats, bStats, pStats, 
         projRunsAllowed = Math.max(0.5, Math.round((blendedERA / 9 * projIP) / nextOpp.oppRPG * 4.4 * 2) / 2);
 
         kConfidence = curIP > 10 ? 0.8 : curIP > 5 ? 0.6 : 0.4;
-        ipConfidence = pGP > 2 ? 0.7 : 0.4;
-        raConfidence = curIP > 10 ? 0.65 : 0.35;
-
-        props.push({ category: 'Strikeouts', line: projK, confidence: kConfidence, direction: projK >= 5.5 ? 'Over' : 'Under', unit: 'K', isModel: true });
-        props.push({ category: 'Innings Pitched', line: projIP, confidence: ipConfidence, direction: projIP >= 5.5 ? 'Over' : 'Under', unit: 'IP', isModel: true });
-        props.push({ category: 'Runs Allowed', line: projRunsAllowed, confidence: raConfidence, direction: projRunsAllowed <= 2.5 ? 'Under' : 'Over', unit: 'RA', isModel: true });
+        
+        // Dynamic Pick Logic for Pitchers: Use recent K/9 vs career K/9 and ERA confidence
+        const curKRate = (curK / Math.max(1, curIP)) * 9;
+        const carKRate = (carK / Math.max(1, carIP)) * 9;
+        const kPick = (curKRate > carKRate || projK >= 6.5) ? 'Over' : 'Under';
+        
+        props.push({ category: 'Strikeouts', line: projK, confidence: kConfidence, direction: kPick, unit: 'K', isModel: true });
     }
 
     if (!isPitcher || isTwoWay) {
@@ -452,10 +453,16 @@ function generatePlayerProps(player, currentStats, careerStats, bStats, pStats, 
         tbConfidence = gp > 3 ? 0.65 : 0.4;
         rbiConfidence = gp > 5 ? 0.55 : 0.3;
 
-        props.push({ category: 'Home Runs', line: 0.5, confidence: hrConfidence, direction: projHR > 0.3 ? 'Over' : 'Under', unit: 'HR', isModel: true });
-        props.push({ category: 'Hits', line: projHits || 1.5, confidence: hitsConfidence, direction: projHits >= 1.5 ? 'Over' : 'Under', unit: 'H', isModel: true });
-        props.push({ category: 'Total Bases', line: projTB || 1.5, confidence: tbConfidence, direction: projTB >= 1.5 ? 'Over' : 'Under', unit: 'TB', isModel: true });
-        props.push({ category: 'RBI', line: projRBI || 0.5, confidence: rbiConfidence, direction: projRBI >= 0.8 ? 'Over' : 'Under', unit: 'RBI', isModel: true });
+        // Dynamic Pick Logic for Batters: Mix based on recent AVG/OPS vs Career
+        const hrPick = (projHR > 0.3 || (curHR/gp > blendedHRRate * 1.2)) ? 'Over' : 'Under';
+        const hitsPick = (curAVG > carAVG || projHits >= 2.0) ? 'Over' : 'Under';
+        const tbPick = (curSLG > carSLG || projTB >= 2.5) ? 'Over' : 'Under';
+        const rbiPick = (curRBI/gp > 0.6 || projRBI >= 1.0) ? 'Over' : 'Under';
+
+        props.push({ category: 'Home Runs', line: 0.5, confidence: hrConfidence, direction: hrPick, unit: 'HR', isModel: true });
+        props.push({ category: 'Hits', line: projHits || 1.5, confidence: hitsConfidence, direction: hitsPick, unit: 'H', isModel: true });
+        props.push({ category: 'Total Bases', line: projTB || 1.5, confidence: tbConfidence, direction: tbPick, unit: 'TB', isModel: true });
+        props.push({ category: 'RBI', line: projRBI || 0.5, confidence: rbiConfidence, direction: rbiPick, unit: 'RBI', isModel: true });
     }
 
     let mergedProps = [...props];
