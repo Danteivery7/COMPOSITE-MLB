@@ -268,11 +268,16 @@ export default function GameDetailPage({ gameId, onBack }) {
                         )}
 
                         {/* Player Prop Picks */}
-                        {game.playerProps && (game.playerProps.modelProps?.length > 0 || game.playerProps.espnProps?.length > 0) && (
+                        {game.playerProps && (game.playerProps.modelProps?.length > 0) && (
                             <div className="card" style={{ marginTop: '24px', padding: '20px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '12px', textAlign: 'left' }}>
-                                <h4 style={{ margin: '0 0 16px', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--accent-green, #10b981)', fontWeight: 800, borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    🎯 Player Prop Picks
-                                </h4>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+                                    <h4 style={{ margin: 0, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent-green, #10b981)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        🎯 Player Prop Picks
+                                    </h4>
+                                    {game.playerProps.modelProps?.[0]?.isModel && (
+                                        <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'rgba(99,102,241,0.12)', color: 'var(--accent)' }}>🤖 AI PROJECTION</span>
+                                    )}
+                                </div>
                                 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                     {(game.playerProps.modelProps || []).map((prop, i) => (
@@ -284,11 +289,11 @@ export default function GameDetailPage({ gameId, onBack }) {
                                                 <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>{prop.name} <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>({prop.team})</span></div>
                                                 <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>{prop.category}</div>
                                             </div>
-                                            <div style={{ textAlign: 'center', minWidth: '50px' }}>
-                                                <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-primary)' }}>{prop.modelLine}</div>
+                                            <div style={{ textAlign: 'center', minWidth: '60px' }}>
+                                                <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)' }}>{prop.modelLine}</div>
                                                 <div style={{ fontSize: '10px', fontWeight: 800, color: prop.modelPick === 'Over' ? 'var(--accent-green, #10b981)' : 'var(--accent-red, #ef4444)', textTransform: 'uppercase' }}>{prop.modelPick}</div>
                                             </div>
-                                            <div style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, background: prop.confidence === 'High' ? 'rgba(16,185,129,0.12)' : prop.confidence === 'Med' ? 'rgba(99,102,241,0.1)' : 'rgba(239,68,68,0.08)', color: prop.confidence === 'High' ? 'var(--accent-green, #10b981)' : prop.confidence === 'Med' ? 'var(--accent)' : 'var(--text-muted)' }}>
+                                            <div style={{ padding: '6px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 800, background: 'var(--bg-primary)', color: 'var(--accent)', border: '1px solid var(--border-color)' }}>
                                                 {prop.confidence}
                                             </div>
                                         </div>

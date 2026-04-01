@@ -94,27 +94,23 @@ export default function PlayerDetailPage({ playerId, onBack }) {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span style={{ fontSize: '20px' }}>🎯</span>
-                                <h3 style={{ margin: 0, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent-green, #10b981)' }}>Next Game Props</h3>
+                                <h3 style={{ margin: 0, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent-green, #10b981)' }}>
+                                    {p.playerProps.allProps?.[0]?.isModel ? 'AI Model Projections' : 'Next Game Props'}
+                                </h3>
+                                {p.playerProps.allProps?.[0]?.isModel ? (
+                                    <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'rgba(99,102,241,0.12)', color: 'var(--accent)' }}>🤖 AI PROJECTION</span>
+                                ) : (
+                                    <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'rgba(16,185,129,0.12)', color: 'var(--accent-green, #10b981)' }}>🎯 VERIFIED LINE</span>
+                                )}
                                 {p.playerProps.lineupStatus === 'in-lineup' && <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'rgba(16,185,129,0.12)', color: 'var(--accent-green, #10b981)' }}>IN LINEUP ✓</span>}
                                 {p.playerProps.lineupStatus === 'not-in-lineup' && <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'rgba(239,68,68,0.12)', color: 'var(--accent-red, #ef4444)' }}>NOT IN LINEUP</span>}
-                                {p.playerProps.lineupStatus === 'game-active' && <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'rgba(99,102,241,0.12)', color: 'var(--accent)' }}>GAME ACTIVE</span>}
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                            <div className="prop-opponent" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-secondary)' }}>
                                 {p.playerProps.opponent?.logo && <img src={p.playerProps.opponent.logo} alt="" style={{ width: '20px', height: '20px' }} onError={e => e.target.style.display='none'} />}
                                 <span style={{ fontWeight: 700 }}>{p.playerProps.opponent?.isHome ? 'vs' : '@'} {p.playerProps.opponent?.abbr}</span>
                                 <span style={{ color: 'var(--text-muted)' }}>· #{p.playerProps.oppRank}</span>
                             </div>
                         </div>
-                        
-                        {p.playerProps.bestProp && (
-                            <div style={{ padding: '14px 18px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '10px', marginBottom: '16px', border: '1px solid rgba(16, 185, 129, 0.15)' }}>
-                                <div style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 800, color: 'var(--accent-green, #10b981)', letterSpacing: '1px', marginBottom: '6px' }}>Best Pick</div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span style={{ fontSize: '16px', fontWeight: 800 }}>{p.playerProps.bestProp.direction} {p.playerProps.bestProp.line} {p.playerProps.bestProp.category}</span>
-                                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-green, #10b981)', padding: '4px 8px', background: 'rgba(16, 185, 129, 0.12)', borderRadius: '4px' }}>{Math.round(p.playerProps.bestProp.confidence * 100)}% Conf</span>
-                                </div>
-                            </div>
-                        )}
                         
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
                             {(p.playerProps.allProps || []).map((prop, i) => (
@@ -122,6 +118,7 @@ export default function PlayerDetailPage({ playerId, onBack }) {
                                     <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px', marginBottom: '6px' }}>{prop.category}</div>
                                     <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', marginBottom: '4px' }}>{prop.line}</div>
                                     <div style={{ fontSize: '11px', fontWeight: 700, color: prop.direction === 'Over' ? 'var(--accent-green, #10b981)' : 'var(--accent-red, #ef4444)' }}>{prop.direction}</div>
+                                    <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', marginTop: '4px', opacity: 0.6 }}>{Math.round(prop.confidence * 100)}% Conf</div>
                                 </div>
                             ))}
                         </div>
