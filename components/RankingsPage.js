@@ -243,12 +243,12 @@ export default function RankingsPage({ favorites, toggleFavorite, onTeamClick })
                                     })()}
                                 </td>
                                 <td>
-                                    {team.streakNum !== 0 ? (
-                                        <span className={`trend-chip ${team.streakNum > 0 ? 'up' : 'down'}`}>
+                                    {(team.streak && team.streak !== '—') ? (
+                                        <span className={`status-pill ${String(team.streak).startsWith('W') ? 'win' : 'loss'}`} style={{ fontWeight: 700, color: String(team.streak).startsWith('W') ? 'var(--accent-green)' : 'var(--accent-red)' }}>
                                             {team.streak}
                                         </span>
                                     ) : (
-                                        <span className="trend-chip same">—</span>
+                                        <div style={{ color: 'var(--text-muted)', fontSize: '12px', paddingLeft: '8px' }}>—</div>
                                     )}
                                 </td>
                                 <td>
