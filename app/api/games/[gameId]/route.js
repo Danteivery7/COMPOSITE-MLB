@@ -25,6 +25,8 @@ export async function GET(request, { params }) {
         const header = summary.header;
         const competitions = header?.competitions?.[0] || {};
         const competitors = competitions.competitors || [];
+        const homeComp = competitors.find(c => c.homeAway === 'home');
+        const awayComp = competitors.find(c => c.homeAway === 'away');
 
         const parseTeam = (comp) => {
             if (!comp) return null;
@@ -139,15 +141,16 @@ export async function GET(request, { params }) {
                 if (isBatting) labels.batting = group.labels || [];
                 if (isPitching) labels.pitching = group.labels || [];
                 for (const athlete of group.athletes || []) {
-                    batters.push({
+                    const mapped = {
                         id: athlete.athlete?.id,
                         name: athlete.athlete?.displayName || athlete.athlete?.shortName,
                         position: athlete.athlete?.position?.abbreviation,
                         starter: athlete.starter,
                         batOrder: athlete.batOrder,
                         stats: athlete.stats || [],
-                    });
-                    if (isPitching) pitchers.push(mapped); // Note: Simple mapping to preserve structure
+                    };
+                    if (isBatting) batters.push(mapped);
+                    if (isPitching) pitchers.push(mapped);
                 }
             }
             return { batters, pitchers, labels };
