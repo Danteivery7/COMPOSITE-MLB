@@ -135,7 +135,22 @@ export default function GameDetailPage({ gameId, onBack }) {
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                 <img src={game.away?.logo} alt={game.away?.name} style={{ width: '100px', height: '100px', marginBottom: '16px', filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.15))' }} onError={(e) => { e.target.style.display = 'none'; }} />
                                 <h3 style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{game.away?.abbr || game.away?.name}</h3>
-                                <p style={{ color: 'var(--text-secondary)', fontWeight: 600, marginTop: '4px' }}>{game.away?.record}</p>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                                    <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{game.away?.record}</p>
+                                    {game.away?.streak && (
+                                        <span style={{ 
+                                            fontSize: '10px', 
+                                            fontWeight: 900, 
+                                            padding: '2px 6px', 
+                                            borderRadius: '4px', 
+                                            background: game.away.streak.startsWith('W') ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
+                                            color: game.away.streak.startsWith('W') ? '#10b981' : '#ef4444',
+                                            border: `1px solid ${game.away.streak.startsWith('W') ? '#10b98133' : '#ef444433'}`
+                                        }}>
+                                            {game.away.streak}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                             
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -146,7 +161,22 @@ export default function GameDetailPage({ gameId, onBack }) {
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                 <img src={game.home?.logo} alt={game.home?.name} style={{ width: '100px', height: '100px', marginBottom: '16px', filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.15))' }} onError={(e) => { e.target.style.display = 'none'; }} />
                                 <h3 style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>{game.home?.abbr || game.home?.name}</h3>
-                                <p style={{ color: 'var(--text-secondary)', fontWeight: 600, marginTop: '4px' }}>{game.home?.record}</p>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                                    <p style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{game.home?.record}</p>
+                                    {game.home?.streak && (
+                                        <span style={{ 
+                                            fontSize: '10px', 
+                                            fontWeight: 900, 
+                                            padding: '2px 6px', 
+                                            borderRadius: '4px', 
+                                            background: game.home.streak.startsWith('W') ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
+                                            color: game.home.streak.startsWith('W') ? '#10b981' : '#ef4444',
+                                            border: `1px solid ${game.home.streak.startsWith('W') ? '#10b98133' : '#ef444433'}`
+                                        }}>
+                                            {game.home.streak}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                         

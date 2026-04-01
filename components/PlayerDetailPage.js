@@ -73,14 +73,27 @@ export default function PlayerDetailPage({ playerId, onBack }) {
 
                 {/* AI Performance Analysis */}
                 {p.aiAnalysis && (
-                    <div className="card ai-analysis-card" style={{ marginBottom: '24px', borderLeft: '4px solid var(--accent)', padding: '20px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                            <span style={{ fontSize: '20px' }}>🤖</span>
-                            <h3 style={{ margin: 0, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent)' }}>AI Performance Analysis</h3>
+                    <div className="card ai-analysis-card" style={{ marginBottom: '24px', borderLeft: `4px solid ${p.aiAnalysis.color || 'var(--accent)'}`, padding: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '20px' }}>🤖</span>
+                                <h3 style={{ margin: 0, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent)' }}>AI Performance Analysis</h3>
+                            </div>
+                            {p.aiAnalysis.label && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 12px', background: 'rgba(255,255,255,0.05)', borderRadius: '20px', border: `1px solid ${p.aiAnalysis.color}44` }}>
+                                    <span style={{ fontSize: '10px', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Consensus:</span>
+                                    <span style={{ fontSize: '12px', fontWeight: 900, color: p.aiAnalysis.color }}>{p.aiAnalysis.label}</span>
+                                    <div style={{ display: 'flex', gap: '2px', marginLeft: '4px' }}>
+                                        {[1, 2, 3, 4, 5].map(i => (
+                                            <div key={i} style={{ width: '6px', height: '6px', borderRadius: '50%', background: i <= p.aiAnalysis.score ? p.aiAnalysis.color : 'rgba(255,255,255,0.1)' }} />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                         <div style={{ fontSize: '15px', lineHeight: '1.7', color: 'var(--text-primary)', fontStyle: 'italic' }}>
-                            {p.aiAnalysis.split('\n\n').map((para, i) => (
-                                <p key={i} style={{ marginBottom: i < p.aiAnalysis.split('\n\n').length - 1 ? '12px' : 0 }}>
+                            {(p.aiAnalysis.narrative || p.aiAnalysis).split('\n\n').map((para, i) => (
+                                <p key={i} style={{ marginBottom: i < (p.aiAnalysis.narrative || p.aiAnalysis).split('\n\n').length - 1 ? '12px' : 0 }}>
                                     "{para}"
                                 </p>
                             ))}

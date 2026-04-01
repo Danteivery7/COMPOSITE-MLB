@@ -60,8 +60,25 @@ export default function TeamDetailPage({ teamId, onBack, favorites, toggleFavori
                 <img src={logo} alt={team.name} className="team-hero-logo" onError={e => e.target.style.display = 'none'} />
                 <div className="team-hero-info">
                     <h1 className="page-title">{team.fullName}</h1>
-                    <p className="page-subtitle">{team.league} {team.division} · {team.wins || 0}-{team.losses || 0}</p>
-                    <div className="team-hero-ranks">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px' }}>
+                        <p className="page-subtitle" style={{ margin: 0 }}>{team.league} {team.division} · {team.wins || 0}-{team.losses || 0}</p>
+                        {team.streak && (
+                            <span style={{ 
+                                fontSize: '11px', 
+                                fontWeight: 900, 
+                                padding: '3px 8px', 
+                                borderRadius: '6px', 
+                                background: team.streak.startsWith('W') ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
+                                color: team.streak.startsWith('W') ? '#10b981' : '#ef4444',
+                                border: `1px solid ${team.streak.startsWith('W') ? '#10b98133' : '#ef444433'}`,
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                            }}>
+                                {team.streak} Streak
+                            </span>
+                        )}
+                    </div>
+                    <div className="team-hero-ranks" style={{ marginTop: '16px' }}>
                         <RankPill label="OVR" value={team.ovrRank} />
                         <RankPill label="OFF" value={team.offRank} />
                         <RankPill label="DEF" value={team.defRank} />
