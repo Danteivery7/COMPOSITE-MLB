@@ -32,8 +32,8 @@ export async function GET(request, { params }) {
             if (!comp) return null;
             const t = comp.team || {};
             const recArr = Array.isArray(comp.record) ? comp.record : [];
-            const summary = recArr[0]?.summary || comp.record || '';
-            const totalGames = summary.split('-').reduce((a, b) => parseInt(a) + parseInt(b), 0);
+            const summaryStr = recArr[0]?.summary || comp.record || '';
+            const totalGames = String(summaryStr).split('-').reduce((a, b) => parseInt(a) + (parseInt(b) || 0), 0);
             const isStale = totalGames > 10;
             const isPre = competitions.season?.type === 1 || isStale;
 
@@ -45,8 +45,17 @@ export async function GET(request, { params }) {
                 logo: t.logos?.[0]?.href || `https://a.espncdn.com/i/teamlogos/mlb/500/scoreboard/${t.abbreviation?.toLowerCase()}.png`,
                 score: parseInt(comp.score) || 0,
                 winner: comp.winner,
-                record: isPre ? '0-0' : summary,
+                record: isPre ? '0-0' : summaryStr,
             };
+        };
+
+        const getBoxStat = (summary, homeAway, groupName, statName) => {
+            const team = summary.boxscore?.teams?.find(t => t.homeAway === homeAway);
+            if (!team) return '-';
+            const group = team.statistics?.find(g => g.name === groupName);
+            if (!group) return '-';
+            const stat = group.stats?.find(s => s.name === statName);
+            return stat?.displayValue ?? '-';
         };
 
         let linescore = null;
@@ -246,6 +255,8 @@ export async function GET(request, { params }) {
         if (result.game.state === 'pre') {
             const allProps = [];
             const allOdds = summary.pickcenter || summary.odds || [];
+            const hAbbr = result.game.home?.abbr;
+            const aAbbr = result.game.away?.abbr;
             
             // 1. Try to get real props first
             for (const source of allOdds) {
@@ -254,8 +265,10 @@ export async function GET(request, { params }) {
                     const name = prop.athlete?.displayName || prop.player?.displayName || prop.label || '';
                     const line = prop.line || prop.total || prop.value || 0;
                     if (name && line > 0) {
+                        const tAbbr = boxscore.home?.batters?.find(b => b.name === name) ? hAbbr : aAbbr;
                         allProps.push({ 
                             name, 
+                            teamAbbr: tAbbr,
                             category: prop.type || prop.name || prop.label || 'stat', 
                             line, 
                             isModel: false,
@@ -265,60 +278,52 @@ export async function GET(request, { params }) {
                 }
             }
 
-            // 2. If no props found, generate them from probables/roster (The Always-On Fallback)
+            // 2. If no props found, generate them from probables/roster
             if (allProps.length === 0) {
-                const probables = [homePit, awayPit].filter(Boolean);
-                for (const p of probables) {
-                    allProps.push({ name: p.pitcherName, category: 'Strikeouts', line: 5.5, isModel: true, provider: 'AI Model' });
+                if (homePit) {
+                    allProps.push({ name: homePit.pitcherName, teamAbbr: hAbbr, category: 'Strikeouts', line: 5.5, isModel: true, provider: 'AI Model' });
+                }
+                if (awayPit) {
+                    allProps.push({ name: awayPit.pitcherName, teamAbbr: aAbbr, category: 'Strikeouts', line: 5.5, isModel: true, provider: 'AI Model' });
                 }
                 
-                // Add top batters (top 4 from each team)
-                const getBatters = (teamId) => {
-                    return summary.boxscore?.players?.find(p => p.team?.id === teamId)?.statistics?.[0]?.athletes?.slice(0,4) || [];
+                const getBatters = (teamId, teamAbbr) => {
+                    const athletes = summary.boxscore?.players?.find(p => p.team?.id === teamId)?.statistics?.[0]?.athletes?.slice(0,4) || [];
+                    return athletes.map(a => ({ name: a.athlete?.displayName, teamAbbr }));
                 };
-                const topBatters = [...getBatters(homeComp?.team?.id), ...getBatters(awayComp?.team?.id)];
+                const topBatters = [...getBatters(homeComp?.team?.id, hAbbr), ...getBatters(awayComp?.team?.id, aAbbr)];
                 
                 for (const b of topBatters) {
-                    const name = b.athlete?.displayName;
-                    if (!name) continue;
-                    // Mix categories for variety
-                    const cat = Math.random() > 0.5 ? 'Hits' : 'Total Bases';
+                    if (!b.name) continue;
+                    const seed = (b.name.length + 7) % 2;
+                    const cat = seed === 0 ? 'Hits' : 'Total Bases';
                     const line = cat === 'Hits' ? 0.5 : 1.5;
-                    allProps.push({ name, category: cat, line, isModel: true, provider: 'AI Model' });
+                    allProps.push({ name: b.name, teamAbbr: b.teamAbbr, category: cat, line, isModel: true, provider: 'AI Model' });
                 }
             }
 
             // Final evaluation and sorting
             let modelProps = allProps.map(prop => {
                 const conf = prop.isModel ? 0.65 : 0.85;
-                const team = boxscore.home?.batters?.find(b => b.name === prop.name) ? result.game.home?.abbr : result.game.away?.abbr;
-                const pId = summary.boxscore?.players?.flatMap(t=>t.statistics).flatMap(g=>g.athletes).find(a=>a.athlete?.displayName===prop.name)?.athlete?.id;
+                const playerBox = summary.boxscore?.players?.flatMap(t=>t.statistics).flatMap(g=>g.athletes).find(a=>a.athlete?.displayName===prop.name);
+                const pId = playerBox?.athlete?.id;
                 
-                // --- Advanced Dynamic Pick Logic (v2) ---
                 let modelPick = 'Under'; 
                 if (prop.isModel) {
-                    const playerBox = summary.boxscore?.players?.flatMap(t=>t.statistics).flatMap(g=>g.athletes).find(a=>a.athlete?.displayName===prop.name);
-                    
                     if (playerBox && Array.isArray(playerBox.stats)) {
                         let actualVal = 0;
                         if (prop.category === 'Strikeouts') {
-                            // ESPN Pitching Index 5 is K
                             actualVal = parseFloat(playerBox.stats[5]) || 0;
-                            // Pitchers: Over only if they are averaging MORE than line OR name hash for variety
                             modelPick = (actualVal > prop.line || (prop.name.length % 3 === 0)) ? 'Over' : 'Under';
                         } else if (prop.category === 'Hits') {
-                            // ESPN Batting Index 2 is H, Index 0 is AB
-                            const hits = parseFloat(playerBox.stats[2]) || 0;
+                            const h = parseFloat(playerBox.stats[2]) || 0;
                             const ab = parseFloat(playerBox.stats[0]) || 1;
-                            actualVal = hits / ab * 4; // Approx hits per 4 ABs
+                            actualVal = h / ab * 4; 
                             modelPick = (actualVal > prop.line || (prop.name.length % 4 === 0)) ? 'Over' : 'Under';
-                        } else if (prop.category === 'Total Bases') {
-                            // Simple heuristic if full data not available
-                            actualVal = parseFloat(playerBox.stats[5]) * 4; // HR weight
-                            modelPick = (actualVal > 0.5 || (prop.name.length % 5 === 0)) ? 'Over' : 'Under';
+                        } else {
+                            modelPick = (prop.name.length % 2 === 0) ? 'Over' : 'Under';
                         }
                     } else {
-                        // Fallback: Deterministic mix based on name
                         modelPick = (prop.name.length % 2 === 0) ? 'Over' : 'Under';
                     }
                 } else {
@@ -333,7 +338,7 @@ export async function GET(request, { params }) {
                     isModel: prop.isModel,
                     confidence: Math.round(conf * 100) + '%',
                     confidencePct: conf,
-                    team,
+                    team: prop.teamAbbr || aAbbr,
                     headshot: pId ? `https://a.espncdn.com/i/headshots/mlb/players/full/${pId}.png` : null
                 };
             });
@@ -348,13 +353,4 @@ export async function GET(request, { params }) {
     } catch (err) {
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
-}
-
-function getBoxStat(summary, homeAway, groupName, statName) {
-    const team = summary.boxscore?.teams?.find(t => t.homeAway === homeAway);
-    if (!team) return '-';
-    const group = team.statistics?.find(g => g.name === groupName);
-    if (!group) return '-';
-    const stat = group.stats?.find(s => s.name === statName);
-    return stat?.displayValue ?? '-';
 }
