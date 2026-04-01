@@ -323,14 +323,15 @@ export async function GET(request, { params }) {
                     let score = 0;
                     if (prop.category === 'Strikeouts' || prop.category === 'Total Outs') {
                         const kRate = (parseFloat(playerBox.stats[5]) / (parseFloat(playerBox.stats[0]) || 1)) * 9;
-                        score = (kRate > 9.0 ? 1 : 0) + (kRate > 11 ? 1 : 0);
+                        const totK = parseFloat(playerBox.stats[5]) || 0;
+                        score = (kRate > 7.5 ? 1 : 0) + (kRate > 10 ? 1 : 0) + (totK > 40 ? 1 : 0);
                     } else {
                         const avg = (parseFloat(playerBox.stats[2]) / (parseFloat(playerBox.stats[0]) || 1));
                         score = (avg > 0.270 ? 1 : 0) + (avg > 0.300 ? 1 : 0);
                     }
                     
-                    // Diversity Logic: Use score as probability weight for Over
-                    const overProb = score >= 2 ? 0.8 : score === 1 ? 0.5 : 0.2;
+                    // Pitcher-Specific Balancing: Increase Over probability for Score 1-2 Arm profiles
+                    const overProb = score >= 2 ? 0.85 : score === 1 ? 0.55 : 0.25;
                     modelPick = (Math.sin(nameSeed * 1.5) + 1) / 2 < overProb ? 'Over' : 'Under';
                 } else {
                     modelPick = (nameSeed % 2 === 0) ? 'Over' : 'Under';
