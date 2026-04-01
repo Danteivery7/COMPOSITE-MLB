@@ -270,15 +270,21 @@ export async function GET(request, { params }) {
                 const probables = [homePit, awayPit].filter(Boolean);
                 for (const p of probables) {
                     allProps.push({ name: p.pitcherName, category: 'Strikeouts', line: 5.5, isModel: true, provider: 'AI Model' });
-                    allProps.push({ name: p.pitcherName, category: 'Innings Pitched', line: 17.5, isModel: true, provider: 'AI Model' });
                 }
-                // Add top batters as well if we have them
-                const topBatters = [
-                    ...(summary.boxscore?.players?.find(p => p.team?.id === homeComp?.team?.id)?.statistics?.[0]?.athletes?.slice(0,2) || []),
-                    ...(summary.boxscore?.players?.find(p => p.team?.id === awayComp?.team?.id)?.statistics?.[0]?.athletes?.slice(0,2) || [])
-                ];
+                
+                // Add top batters (top 4 from each team)
+                const getBatters = (teamId) => {
+                    return summary.boxscore?.players?.find(p => p.team?.id === teamId)?.statistics?.[0]?.athletes?.slice(0,4) || [];
+                };
+                const topBatters = [...getBatters(homeComp?.team?.id), ...getBatters(awayComp?.team?.id)];
+                
                 for (const b of topBatters) {
-                    allProps.push({ name: b.athlete?.displayName, category: 'Total Bases', line: 1.5, isModel: true, provider: 'AI Model' });
+                    const name = b.athlete?.displayName;
+                    if (!name) continue;
+                    // Mix categories for variety
+                    const cat = Math.random() > 0.5 ? 'Hits' : 'Total Bases';
+                    const line = cat === 'Hits' ? 0.5 : 1.5;
+                    allProps.push({ name, category: cat, line, isModel: true, provider: 'AI Model' });
                 }
             }
 
@@ -291,18 +297,15 @@ export async function GET(request, { params }) {
                 // Dynamic Pick Logic: Over/Under based on recent form and line comparison
                 let modelPick = 'Under'; // Default
                 if (prop.isModel) {
-                    // For AI generated props, we mix it up based on name or simple randomness if no stats found, 
-                    // but preferably we check the boxscore stats if available
                     const playerBox = summary.boxscore?.players?.flatMap(t=>t.statistics).flatMap(g=>g.athletes).find(a=>a.athlete?.displayName===prop.name);
                     if (playerBox) {
-                        const avg = parseFloat(playerBox.stats?.[0]) || 0; // Simple season context
+                        const statsStr = Array.isArray(playerBox.stats) ? playerBox.stats[0] : '0';
+                        const avg = parseFloat(statsStr) || 0; 
                         modelPick = avg > prop.line ? 'Over' : 'Under';
                     } else {
-                        // Deterministic "mix up" based on name length or similar if no stats found yet
                         modelPick = (prop.name.length % 2 === 0) ? 'Over' : 'Under';
                     }
                 } else {
-                    // For real props, try to be smarter
                     modelPick = prop.line < 4 ? 'Over' : 'Under';
                 }
 
@@ -320,7 +323,7 @@ export async function GET(request, { params }) {
             });
 
             modelProps.sort((a,b) => b.isModel === a.isModel ? b.confidencePct - a.confidencePct : a.isModel ? 1 : -1);
-            result.game.playerProps = { modelProps: modelProps.slice(0, 4) };
+            result.game.playerProps = { modelProps: modelProps.slice(0, 8) };
         }
 
         const ttl = result.game.state === 'in' ? 15 : CACHE_TTL.SCORES;
