@@ -305,27 +305,33 @@ export async function GET(request, { params }) {
             // Final evaluation and sorting
             let modelProps = allProps.map(prop => {
                 const conf = prop.isModel ? 0.65 : 0.85;
+                // --- Advanced Dynamic Pick Logic (v3 - Consensus Integrated) ---
                 const playerBox = summary.boxscore?.players?.flatMap(t=>t.statistics).flatMap(g=>g.athletes).find(a=>a.athlete?.displayName===prop.name);
                 const pId = playerBox?.athlete?.id;
-                
                 let modelPick = 'Under'; 
-                if (prop.isModel) {
-                    if (playerBox && Array.isArray(playerBox.stats)) {
-                        let actualVal = 0;
-                        if (prop.category === 'Strikeouts') {
-                            actualVal = parseFloat(playerBox.stats[5]) || 0;
-                            modelPick = (actualVal > prop.line || (prop.name.length % 3 === 0)) ? 'Over' : 'Under';
-                        } else if (prop.category === 'Hits') {
-                            const h = parseFloat(playerBox.stats[2]) || 0;
-                            const ab = parseFloat(playerBox.stats[0]) || 1;
-                            actualVal = h / ab * 4; 
-                            modelPick = (actualVal > prop.line || (prop.name.length % 4 === 0)) ? 'Over' : 'Under';
-                        } else {
-                            modelPick = (prop.name.length % 2 === 0) ? 'Over' : 'Under';
-                        }
+
+                if (prop.isModel && playerBox && Array.isArray(playerBox.stats)) {
+                    if (prop.category === 'Strikeouts') {
+                        const curKNum = parseFloat(playerBox.stats[5]) || 0;
+                        const curIPNum = parseFloat(playerBox.stats[0]) || 1;
+                        const curKRate = (curKNum / curIPNum) * 9;
+                        const pScore = (curKRate > 9.0 ? 1 : 0) + (curKNum > 65 ? 1 : 0) + (curKRate > 11 ? 1 : 0);
+                        if (pScore >= 2) modelPick = 'Over';
+                        else if (pScore === 0) modelPick = 'Under';
+                        else modelPick = (prop.name.length % 2 === 0) ? 'Over' : 'Under';
                     } else {
-                        modelPick = (prop.name.length % 2 === 0) ? 'Over' : 'Under';
+                        // Batter Logic
+                        const h = parseFloat(playerBox.stats[2]) || 0;
+                        const ab = parseFloat(playerBox.stats[0]) || 1;
+                        const avg = h / ab;
+                        const hr = parseFloat(playerBox.stats[5]) || 0;
+                        const bScore = (avg > 0.275 ? 1 : 0) + (hr > 18 ? 1 : 0) + (avg > 0.300 ? 1 : 0);
+                        if (bScore >= 2) modelPick = 'Over';
+                        else if (bScore === 0) modelPick = 'Under';
+                        else modelPick = (prop.name.length % 2 === 0) ? 'Over' : 'Under';
                     }
+                } else if (prop.isModel) {
+                    modelPick = (prop.name.length % 2 === 0) ? 'Over' : 'Under';
                 } else {
                     modelPick = prop.line < 4 ? 'Over' : 'Under';
                 }
@@ -338,7 +344,7 @@ export async function GET(request, { params }) {
                     isModel: prop.isModel,
                     confidence: Math.round(conf * 100) + '%',
                     confidencePct: conf,
-                    team: prop.teamAbbr || aAbbr,
+                    team: prop.teamAbbr || (boxscore.home?.batters?.find(b => b.name === prop.name) ? result.game.home?.abbr : result.game.away?.abbr),
                     headshot: pId ? `https://a.espncdn.com/i/headshots/mlb/players/full/${pId}.png` : null
                 };
             });
